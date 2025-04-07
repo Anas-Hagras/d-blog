@@ -9,6 +9,9 @@ on:
     paths:
       - "_pages/**/*.md"
 
+# This workflow only processes new pages that were added in the PR
+# It does not process modified or deleted pages
+
 jobs:
   extract-content:
     # Only run if the PR was merged (not just closed)

@@ -21,18 +21,19 @@ def run_command(command):
         return ""
     return process.stdout.strip()
 
-def get_changed_files(base_ref, head_ref):
+def get_added_files(base_ref, head_ref):
     """
-    Get files changed between two Git references
+    Get files added between two Git references
     
     Args:
         base_ref: Base Git reference (e.g., HEAD~1)
         head_ref: Head Git reference (e.g., HEAD)
     
     Returns:
-        list: List of changed files
+        list: List of added files
     """
-    command = f"git diff --name-only {base_ref} {head_ref}"
+    # Use --diff-filter=A to only get added files
+    command = f"git diff --name-only --diff-filter=A {base_ref} {head_ref}"
     output = run_command(command)
     if not output:
         return []
@@ -80,12 +81,12 @@ def get_previous_commit(current_commit):
     command = f"git rev-parse {current_commit}~1"
     return run_command(command)
 
-def get_pr_changed_files():
+def get_pr_added_files():
     """
-    Get files changed in a PR from GitHub event payload
+    Get files added in a PR from GitHub event payload
     
     Returns:
-        list: List of changed files
+        list: List of added files
     """
     # Get PR number from environment variable
     pr_number = os.getenv("PR_NUMBER")
@@ -93,8 +94,9 @@ def get_pr_changed_files():
         print("PR_NUMBER environment variable not set")
         return []
     
-    # Get changed files from GitHub API
-    command = f"gh pr view {pr_number} --json files --jq '.files[].path'"
+    # Get added files from GitHub API
+    # We need to filter for added files only
+    command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.status==\"added\") | .path'"
     output = run_command(command)
     if not output:
         return []
@@ -115,8 +117,8 @@ def detect_new_pages(base_ref=None, head_ref=None, pages_dir="_pages", pr_mode=F
         list: List of new pages
     """
     if pr_mode:
-        # Get changed files from PR
-        changed_files = get_pr_changed_files()
+        # Get added files from PR
+        changed_files = get_pr_added_files()
     else:
         # If no references provided, use current and previous commits
         if not head_ref:
@@ -124,8 +126,8 @@ def detect_new_pages(base_ref=None, head_ref=None, pages_dir="_pages", pr_mode=F
         if not base_ref:
             base_ref = get_previous_commit(head_ref)
         
-        # Get changed files
-        changed_files = get_changed_files(base_ref, head_ref)
+        # Get added files
+        changed_files = get_added_files(base_ref, head_ref)
     
     # Filter new pages
     new_pages = filter_new_pages(changed_files, pages_dir)

@@ -29,7 +29,7 @@ The system consists of two main components:
 
 When a pull request with new blog posts is merged to the main branch, the `extract-social-media.yml` workflow:
 
-1. Detects new pages in the `_pages` directory that were added in the PR
+1. Detects **new** pages in the `_pages` directory that were **added** in the PR (not modified or deleted)
 2. For each new page, generates social media content using OpenAI's API
 3. Saves the content in the appropriate folder structure
 4. Creates a new pull request with the generated content
