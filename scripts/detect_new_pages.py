@@ -96,36 +96,45 @@ def get_pr_added_files():
     
     print(f"Checking PR #{pr_number} for added files")
     
-    # First, get all files in the PR to debug
+    # Get detailed file information from the PR
     debug_command = f"gh pr view {pr_number} --json files"
     debug_output = run_command(debug_command)
     print(f"Raw PR files data: {debug_output}")
     
-    # Get all files regardless of status to see what's available
+    # Get all files in the PR
     all_files_command = f"gh pr view {pr_number} --json files --jq '.files[].path'"
     all_files_output = run_command(all_files_command)
-    print(f"All files in PR: {all_files_output}")
-    
-    # Get added files from GitHub API
-    # We need to filter for added files only
-    command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.status==\"added\") | .path'"
-    output = run_command(command)
-    print(f"Files with status 'added': {output}")
-    
-    # Try alternative approach - get all files in _pages directory
-    pages_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.path | startswith(\"_pages/\")) | .path'"
-    pages_output = run_command(pages_command)
-    print(f"Files in _pages directory: {pages_output}")
-    
-    # If no added files found, use files in _pages directory as fallback
-    if not output and pages_output:
-        print("No files with status 'added' found, using files in _pages directory as fallback")
-        return pages_output.split("\n")
-    
-    if not output:
+    if not all_files_output:
+        print("No files found in PR")
         return []
     
-    return output.split("\n")
+    all_files = all_files_output.split("\n")
+    print(f"All files in PR: {all_files_output}")
+    
+    # Get new files (files with additions but no deletions)
+    # This is a more reliable way to detect new files than using status
+    new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.additions > 0 and .deletions == 0) | .path'"
+    new_files_output = run_command(new_files_command)
+    print(f"New files (additions > 0, deletions == 0): {new_files_output}")
+    
+    # Filter for files in _pages directory
+    pages_files = [f for f in all_files if f.startswith("_pages/")]
+    print(f"Files in _pages directory: {pages_files}")
+    
+    # If we found new files, filter them for _pages directory
+    if new_files_output:
+        new_files = new_files_output.split("\n")
+        new_pages = [f for f in new_files if f.startswith("_pages/")]
+        print(f"New files in _pages directory: {new_pages}")
+        if new_pages:
+            return new_pages
+    
+    # If no new pages found, use all files in _pages directory as fallback
+    if pages_files:
+        print("No new pages detected, using all files in _pages directory as fallback")
+        return pages_files
+    
+    return []
 
 def detect_new_pages(base_ref=None, head_ref=None, pages_dir="_pages", pr_mode=False):
     """
