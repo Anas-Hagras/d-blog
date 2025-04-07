@@ -109,30 +109,43 @@ jobs:
             python scripts/extract_social_media_content.py "$page" "X"
           done
 
-      - name: Commit changes
+      - name: Check for changes
+        id: check_changes
         if: steps.detect.outputs.new_pages != ''
         run: |
           git add Social_media/
+          # Check if there are any changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit changes
+        if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
           git commit -m "Add social media content for new pages"
 
       - name: Push branch
-        if: steps.detect.outputs.new_pages != ''
+        if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
         run: |
           # Use a different approach for authentication
           git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
           git push origin ${{ steps.branch.outputs.branch_name }}
 
       - name: Create Pull Request
-        if: steps.detect.outputs.new_pages != ''
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GH_PAT }}
-          title: "Add social media content for new pages"
-          body: |
-            This PR adds social media content for the following new pages:
+        if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          # Create pull request using GitHub CLI instead of the action
+          # This avoids the issue with the action trying to push the branch again
+          gh pr create \
+            --title "Add social media content for new pages" \
+            --body "This PR adds social media content for the following new pages:
 
             ${{ steps.detect.outputs.new_pages }}
 
-            The content will be published to social media platforms when this PR is merged.
-          branch: ${{ steps.branch.outputs.branch_name }}
-          base: ${{ github.ref_name }}
+            The content will be published to social media platforms when this PR is merged." \
+            --base ${{ github.ref_name }} \
+            --head ${{ steps.branch.outputs.branch_name }}
