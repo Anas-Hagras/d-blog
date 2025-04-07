@@ -64,7 +64,7 @@ jobs:
 
       - name: Upload posting results
         if: steps.check-content.outputs.has_content == 'true'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: posting-results
           path: posting_results.json
