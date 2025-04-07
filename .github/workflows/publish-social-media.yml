@@ -1,0 +1,85 @@
+name: Publish Social Media Content
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+      - main
+    paths:
+      - "Social_media/**/*.txt"
+
+jobs:
+  publish-content:
+    # Only run if the PR was merged (not just closed)
+    if: github.event.pull_request.merged == true
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v35
+        with:
+          files: Social_media/**/*.txt
+
+      - name: Check for social media content
+        id: check-content
+        run: |
+          if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+            echo "has_content=true" >> $GITHUB_OUTPUT
+            echo "Changed files:"
+            echo "${{ steps.changed-files.outputs.all_changed_files }}"
+          else
+            echo "has_content=false" >> $GITHUB_OUTPUT
+            echo "No social media content files changed"
+          fi
+
+      - name: Publish to X
+        if: steps.check-content.outputs.has_content == 'true'
+        env:
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
+        run: |
+          # Convert changed files to comma-separated list
+          CHANGED_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr '\n' ',')
+
+          # Post to X
+          python scripts/post_to_x.py "Social_media" "posting_results.json" "$CHANGED_FILES"
+
+      - name: Upload posting results
+        if: steps.check-content.outputs.has_content == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: posting-results
+          path: posting_results.json
+          retention-days: 30
+
+      - name: Add comment to PR
+        if: steps.check-content.outputs.has_content == 'true'
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## Social Media Content Published ✅
+
+            The social media content from this PR has been published to the following platforms:
+
+            - X (Twitter)
+
+            Check the workflow run for detailed results.
