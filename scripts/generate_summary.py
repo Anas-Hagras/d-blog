@@ -4,7 +4,17 @@ import markdown
 import yaml
 import os
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize OpenAI client with more robust error handling
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("OPENAI_API_KEY environment variable is not set")
+
+try:
+    # Try with standard initialization
+    client = OpenAI(api_key=api_key)
+except TypeError:
+    # Fallback for older versions
+    client = OpenAI(api_key=api_key, base_url="https://api.openai.com/v1")
 
 def extract_markdown_content(filepath):
     with open(filepath, 'r') as f:
