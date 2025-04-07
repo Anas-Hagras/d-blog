@@ -44,13 +44,13 @@ jobs:
 
       - name: Authenticate GitHub CLI
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+          echo "${{ secrets.GH_PAT }}" | gh auth login --with-token
 
       - name: Detect new pages
         id: detect
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           python scripts/detect_new_pages.py --pr-mode
 
@@ -115,13 +115,14 @@ jobs:
       - name: Push branch
         if: steps.detect.outputs.new_pages != ''
         run: |
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
           git push origin ${{ steps.branch.outputs.branch_name }}
 
       - name: Create Pull Request
         if: steps.detect.outputs.new_pages != ''
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           title: "Add social media content for new pages"
           body: |
             This PR adds social media content for the following new pages:
