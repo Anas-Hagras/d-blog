@@ -94,10 +94,34 @@ def get_pr_added_files():
         print("PR_NUMBER environment variable not set")
         return []
     
+    print(f"Checking PR #{pr_number} for added files")
+    
+    # First, get all files in the PR to debug
+    debug_command = f"gh pr view {pr_number} --json files"
+    debug_output = run_command(debug_command)
+    print(f"Raw PR files data: {debug_output}")
+    
+    # Get all files regardless of status to see what's available
+    all_files_command = f"gh pr view {pr_number} --json files --jq '.files[].path'"
+    all_files_output = run_command(all_files_command)
+    print(f"All files in PR: {all_files_output}")
+    
     # Get added files from GitHub API
     # We need to filter for added files only
     command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.status==\"added\") | .path'"
     output = run_command(command)
+    print(f"Files with status 'added': {output}")
+    
+    # Try alternative approach - get all files in _pages directory
+    pages_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.path | startswith(\"_pages/\")) | .path'"
+    pages_output = run_command(pages_command)
+    print(f"Files in _pages directory: {pages_output}")
+    
+    # If no added files found, use files in _pages directory as fallback
+    if not output and pages_output:
+        print("No files with status 'added' found, using files in _pages directory as fallback")
+        return pages_output.split("\n")
+    
     if not output:
         return []
     
