@@ -162,8 +162,10 @@ if __name__ == "__main__":
         for page in new_pages:
             print(page)
         
-        # Print as JSON for GitHub Actions
-        print("::set-output name=new_pages::" + ",".join(new_pages))
+        # Print as JSON for GitHub Actions using Environment Files
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write(f"new_pages={','.join(new_pages)}\n")
     else:
         print("No new pages detected")
-        print("::set-output name=new_pages::")
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            f.write("new_pages=\n")
