@@ -69,6 +69,12 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
+          # Check if OPENAI_API_KEY is set
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "Error: OPENAI_API_KEY is not set"
+            exit 1
+          fi
+
           # Process each new page
           IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.new_pages }}"
           for page in "${PAGES[@]}"; do
