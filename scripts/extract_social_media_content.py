@@ -2,23 +2,17 @@ import sys
 import os
 from pathlib import Path
 import yaml
-import markdown
 from openai import OpenAI
 
 # Import the SocialMediaPoster to get available platforms
 from posting import SocialMediaPoster
 
-# Initialize OpenAI client with more robust error handling
+# Initialize OpenAI client
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     raise ValueError("OPENAI_API_KEY environment variable is not set")
 
-try:
-    # Try with standard initialization
-    client = OpenAI(api_key=api_key)
-except TypeError:
-    # Fallback for older versions
-    client = OpenAI(api_key=api_key, base_url="https://api.openai.com/v1")
+client = OpenAI(api_key=api_key)
 
 def extract_markdown_content(filepath):
     """
@@ -41,19 +35,43 @@ def extract_markdown_content(filepath):
         else:
             return {}, content
 
-def generate_social_media_content(content, platform):
-    prompt = f"""
-    Summarize the following blog post into an engaging and exciting {platform} post. Use a direct, thoughtful, concise, and reflective style. Start with an intriguing hook or bold statement. Include a short personal anecdote or surprising insight. End with a provocative question or actionable takeaway that encourages interaction.
-
-    For LinkedIn, Email List, Reddit, and Telegram: Maintain a professional, wise, and thoughtful tone. Avoid emojis entirely.
-
-    For X (Twitter), TikTok, and Instagram: Be playful and adventurous. Emojis may be used sparingly.
-
-    Blog Post:
-    {content}
-
-    {platform} post:
+def get_prompt_for_platform(platform, content):
     """
+    Get the prompt for a platform from a file.
+    
+    Args:
+        platform: Platform name
+        content: Content to include in the prompt
+        
+    Returns:
+        str: Prompt for the platform
+    """
+    # Check if a prompt file exists for this platform
+    prompt_file = os.path.join("prompts", f"{platform}.txt")
+    
+    if os.path.exists(prompt_file):
+        # Read prompt from file
+        with open(prompt_file, 'r', encoding='utf-8') as f:
+            prompt_template = f.read()
+        
+        # Replace {content} placeholder with actual content
+        prompt = prompt_template.replace("{content}", content)
+    else:
+        # Use default prompt if no file exists
+        prompt = f"""
+        Summarize the following blog post into an engaging {platform} post.
+        
+        Blog Post:
+        {content}
+        
+        {platform} post:
+        """
+    
+    return prompt
+
+def generate_social_media_content(content, platform):
+    # Get prompt for this platform
+    prompt = get_prompt_for_platform(platform, content)
 
     response = client.chat.completions.create(
         model="gpt-4o",
