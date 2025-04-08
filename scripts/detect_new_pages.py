@@ -117,10 +117,6 @@ def get_pr_added_files():
     new_files_output = run_command(new_files_command)
     print(f"New files (additions > 0, deletions == 0): {new_files_output}")
     
-    # Filter for files in _pages directory
-    pages_files = [f for f in all_files if f.startswith("_pages/")]
-    print(f"Files in _pages directory: {pages_files}")
-    
     # If we found new files, filter them for _pages directory
     if new_files_output:
         new_files = new_files_output.split("\n")
@@ -129,10 +125,8 @@ def get_pr_added_files():
         if new_pages:
             return new_pages
     
-    # If no new pages found, use all files in _pages directory as fallback
-    if pages_files:
-        print("No new pages detected, using all files in _pages directory as fallback")
-        return pages_files
+    # If no new pages found, return empty list
+    print("No new pages detected")
     
     return []
 

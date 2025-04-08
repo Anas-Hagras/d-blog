@@ -5,6 +5,9 @@ import yaml
 import markdown
 from openai import OpenAI
 
+# Import the SocialMediaPoster to get available platforms
+from posting import SocialMediaPoster
+
 # Initialize OpenAI client with more robust error handling
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
@@ -18,12 +21,22 @@ except TypeError:
     client = OpenAI(api_key=api_key, base_url="https://api.openai.com/v1")
 
 def extract_markdown_content(filepath):
+    """
+    Extract front matter and content from a markdown file.
+    
+    Args:
+        filepath: Path to the markdown file
+        
+    Returns:
+        Tuple of (front_matter, content)
+    """
     with open(filepath, 'r') as f:
         content = f.read()
         parts = content.split('---', 2)
         if len(parts) >= 3:
             front_matter = yaml.safe_load(parts[1])
-            markdown_content = markdown.markdown(parts[2])
+            # Return raw markdown content instead of converting to HTML
+            markdown_content = parts[2].strip()
             return front_matter, markdown_content
         else:
             return {}, content
@@ -65,7 +78,7 @@ def get_page_name(filepath):
 
 def save_social_media_content(page_name, platform, content):
     # Create directory structure if it doesn't exist
-    directory = os.path.join("Social_media", page_name, platform)
+    directory = os.path.join("social_media", page_name, platform)
     os.makedirs(directory, exist_ok=True)
     
     # Save content to file
@@ -75,9 +88,31 @@ def save_social_media_content(page_name, platform, content):
     
     return filepath
 
+def get_available_platforms():
+    """
+    Get available platforms from the SocialMediaPoster.
+    
+    Returns:
+        List of platform names
+    """
+    # Create a temporary poster to get available platforms
+    poster = SocialMediaPoster()
+    return list(poster.platforms.keys())
+
 def process_page(filepath, platforms=None):
+    """
+    Process a page and generate social media content for each platform.
+    
+    Args:
+        filepath: Path to the markdown file
+        platforms: List of platforms to generate content for (default: all available platforms)
+        
+    Returns:
+        Dict of platform to output path
+    """
     if platforms is None:
-        platforms = ["X"]  # Default to X only
+        # Get all available platforms
+        platforms = get_available_platforms()
     
     # Extract content from markdown file
     front_matter, content = extract_markdown_content(filepath)
@@ -102,11 +137,14 @@ if __name__ == "__main__":
     
     filepath = sys.argv[1]
     
+    # Check if specific platforms are requested
     platforms = None
     if len(sys.argv) > 2:
         platforms = sys.argv[2].split(',')
     
+    # Process the page
     results = process_page(filepath, platforms)
     
+    # Print results
     for platform, path in results.items():
         print(f"✅ {platform} content saved to {path}")
