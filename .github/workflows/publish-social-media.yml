@@ -56,10 +56,10 @@ jobs:
       - name: Publish to social media
         if: steps.check-content.outputs.has_content == 'true'
         env:
-          TWITTER_API_KEY: ${{ secrets.X_API_KEY }}
-          TWITTER_API_SECRET: ${{ secrets.X_API_SECRET }}
-          TWITTER_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
-          TWITTER_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
         run: |
           # Get unique parent folders from changed files (one level up from platform folders)
           FOLDERS=$(for file in ${{ steps.changed-files.outputs.all_changed_files }}; do dirname $(dirname $file); done | sort -u)
