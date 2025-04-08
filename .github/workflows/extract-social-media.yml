@@ -40,26 +40,55 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install GitHub CLI
+        run: |
+          type -p curl >/dev/null || (apt update && apt install curl -y)
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+          && apt update \
+          && apt install gh -y
+
       - name: Detect new pages
         id: detect
         run: |
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            # Set PR_NUMBER for the detect_new_pages.py script
-            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+            # For PR events, use the detect_new_pages.py script with PR mode
+            # Set up GitHub token for the script to use
+            export GITHUB_TOKEN="${{ secrets.GH_PAT }}"
             
-            # Detect new pages in the PR using PR mode
+            # Set PR_NUMBER as an environment variable
+            export PR_NUMBER="${{ github.event.pull_request.number }}"
+            echo "Using PR #$PR_NUMBER"
+            
+            # Run the script in PR mode
             python scripts/detect_new_pages.py --pr-mode
             
-            # Store new pages in output variable
-            NEW_PAGES=$(python scripts/detect_new_pages.py --pr-mode | grep "_pages/" || echo "")
+            # Capture the output for new pages
+            NEW_PAGES=$(python scripts/detect_new_pages.py --pr-mode | grep "^_pages/.*\.md$" || echo "")
           else
-            # Detect new pages between the previous and current commit
-            python scripts/detect_new_pages.py HEAD~1 HEAD
+            # For push events, use the detect_new_pages.py script with commit range
+            # Get the before and after commit SHAs
+            BEFORE_SHA="${{ github.event.before }}"
+            AFTER_SHA="${{ github.event.after }}"
+            echo "Comparing commits $BEFORE_SHA and $AFTER_SHA"
             
-            # Store new pages in output variable
-            NEW_PAGES=$(python scripts/detect_new_pages.py HEAD~1 HEAD | grep "_pages/" || echo "")
+            # Run the script with commit range
+            python scripts/detect_new_pages.py "$BEFORE_SHA" "$AFTER_SHA"
+            
+            # Capture the output for new pages
+            NEW_PAGES=$(python scripts/detect_new_pages.py "$BEFORE_SHA" "$AFTER_SHA" | grep "^_pages/.*\.md$" || echo "")
           fi
 
+          # Output the new pages
+          if [ -n "$NEW_PAGES" ]; then
+            echo "Found new pages:"
+            echo "$NEW_PAGES"
+          else
+            echo "No new pages detected"
+          fi
+
+          # Set the output variable
           echo "new_pages<<EOF" >> $GITHUB_OUTPUT
           echo "$NEW_PAGES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
