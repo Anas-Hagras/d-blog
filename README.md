@@ -8,7 +8,7 @@ The system consists of two main components:
 
 1. **Extract Social Media Content**: A GitHub Action that runs when new blog posts are pushed to the repository. It detects new pages, generates social media content using AI, and creates a pull request with the generated content.
 
-2. **Publish Social Media Content**: A GitHub Action that runs when a pull request with social media content is merged. It publishes the content to social media platforms (currently X/Twitter).
+2. **Publish Social Media Content**: A GitHub Action that runs when a pull request with social media content is merged. It publishes the content to the appropriate social media platforms (currently X/Twitter).
 
 ## Folder Structure
 
@@ -16,7 +16,8 @@ The system consists of two main components:
 .
 ├── _pages/                  # Blog posts in markdown format
 ├── scripts/                 # Python scripts for content generation and publishing
-├── Social_media/            # Generated social media content
+│   ├── social_media/        # Modular social media platform integrations
+├── social_media/            # Generated social media content
 │   └── <page-name>/         # Content for a specific blog post
 │       └── X/               # Content for X (Twitter)
 │           └── content.txt  # The actual content to be posted
@@ -50,7 +51,7 @@ The workflow is designed to be a two-step process:
 ## Scripts
 
 - `extract_social_media_content.py`: Generates social media content for a blog post
-- `post_to_x.py`: Posts content to X (Twitter)
+- `post_to_x.py`: Posts content to social media platforms (currently X/Twitter)
 - `detect_new_pages.py`: Detects new pages in the repository
 
 ## Environment Variables
@@ -63,13 +64,21 @@ The following environment variables are required:
 - `TWITTER_ACCESS_TOKEN`: Access token for Twitter
 - `TWITTER_ACCESS_SECRET`: Access token secret for Twitter
 
+## Architecture
+
+The system has been refactored to support multiple social media platforms through a modular architecture:
+
+1. **Platform Abstraction**: Each social media platform is implemented as a class that inherits from a common base class.
+2. **Selective Publishing**: The system can now publish to specific platforms and only process specific files.
+3. **Enhanced Results Handling**: Results of posting operations are now stored with more detailed information.
+
 ## Future Enhancements
 
 The system is designed to be extensible to other social media platforms. To add support for a new platform:
 
-1. Update the `extract_social_media_content.py` script to generate content for the new platform
-2. Create a new script for posting to the new platform
-3. Update the `publish-social-media.yml` workflow to use the new script
+1. Create a new platform class in the `scripts/social_media` directory
+2. Update the `extract_social_media_content.py` script to generate content for the new platform
+3. Update the `publish-social-media.yml` workflow to include the new platform
 
 ## Usage
 
@@ -86,5 +95,11 @@ python scripts/extract_social_media_content.py _pages/your-blog-post.md X,Linked
 To manually publish social media content:
 
 ```bash
-python scripts/post_to_x.py Social_media
+python scripts/post_to_x.py social_media
+```
+
+To publish specific files to specific platforms:
+
+```bash
+python scripts/post_to_x.py social_media posting_results.json "social_media/page1/X/content.txt,social_media/page2/X/content.txt" "X"
 ```

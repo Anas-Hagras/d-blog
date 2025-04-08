@@ -106,14 +106,14 @@ jobs:
           IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.new_pages }}"
           for page in "${PAGES[@]}"; do
             echo "Processing page: $page"
-            python scripts/extract_social_media_content.py "$page" "X"
+            python scripts/extract_social_media_content.py "$page"
           done
 
       - name: Check for changes
         id: check_changes
         if: steps.detect.outputs.new_pages != ''
         run: |
-          git add Social_media/
+          git add social_media/
           # Check if there are any changes to commit
           if git diff --staged --quiet; then
             echo "No changes to commit"

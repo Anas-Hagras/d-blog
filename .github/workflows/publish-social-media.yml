@@ -7,14 +7,19 @@ on:
       - master
       - main
     paths:
-      - "Social_media/**/*.txt"
+      - "social_media/**/*.txt"
 
 jobs:
   publish-content:
-    # Only run if the PR was merged (not just closed)
-    if: github.event.pull_request.merged == true
+    # Only run if the PR was merged (not just closed) and the branch name follows the pattern {page_name}_social_media
+    if: github.event.pull_request.merged == true && endsWith(github.event.pull_request.head.ref, '_social_media')
 
     runs-on: ubuntu-latest
+
+    # Add permissions for GitHub token
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -34,7 +39,7 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v35
         with:
-          files: Social_media/**/*.txt
+          files: social_media/**/*.txt
 
       - name: Check for social media content
         id: check-content
@@ -48,7 +53,7 @@ jobs:
             echo "No social media content files changed"
           fi
 
-      - name: Publish to X
+      - name: Publish to social media
         if: steps.check-content.outputs.has_content == 'true'
         env:
           TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
@@ -56,11 +61,14 @@ jobs:
           TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
           TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
         run: |
-          # Convert changed files to comma-separated list
-          CHANGED_FILES=$(echo "${{ steps.changed-files.outputs.all_changed_files }}" | tr '\n' ',')
+          # Get unique folders from changed files
+          FOLDERS=$(for file in ${{ steps.changed-files.outputs.all_changed_files }}; do dirname $file; done | sort -u)
 
-          # Post to X
-          python scripts/post_to_x.py "Social_media" "posting_results.json" "$CHANGED_FILES"
+          # Post to social media platforms
+          for folder in $FOLDERS; do
+            echo "Processing folder: $folder"
+            python scripts/post_social_media.py "$folder" "posting_results.json"
+          done
 
       - name: Upload posting results
         if: steps.check-content.outputs.has_content == 'true'
@@ -75,6 +83,7 @@ jobs:
         uses: peter-evans/create-or-update-comment@v2
         with:
           issue-number: ${{ github.event.pull_request.number }}
+          token: ${{ secrets.GH_PAT }}
           body: |
             ## Social Media Content Published ✅
 
