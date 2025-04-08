@@ -32,9 +32,11 @@ def get_added_files(base_ref, head_ref):
     Returns:
         list: List of added files
     """
-    # Use --diff-filter=A to only get added files
+    # Use --diff-filter=A to only get added files (A = Added)
+    # This ensures we only get truly new files, not modified ones
     command = f"git diff --name-only --diff-filter=A {base_ref} {head_ref}"
     output = run_command(command)
+    print(f"Git diff added files between {base_ref} and {head_ref}: {output}")
     if not output:
         return []
     return output.split("\n")
@@ -101,6 +103,11 @@ def get_pr_added_files():
     debug_output = run_command(debug_command)
     print(f"Raw PR files data: {debug_output}")
     
+    # Print more detailed debug information about each file
+    detailed_debug_command = f"gh pr view {pr_number} --json files --jq '.files[] | {{path: .path, additions: .additions, deletions: .deletions, status: .status}}'"
+    detailed_debug_output = run_command(detailed_debug_command)
+    print(f"Detailed file information: {detailed_debug_output}")
+    
     # Get all files in the PR
     all_files_command = f"gh pr view {pr_number} --json files --jq '.files[].path'"
     all_files_output = run_command(all_files_command)
@@ -111,11 +118,39 @@ def get_pr_added_files():
     all_files = all_files_output.split("\n")
     print(f"All files in PR: {all_files_output}")
     
-    # Get only truly new files (not modified files)
-    # Use the status field to identify added files
-    new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.status == \"added\") | .path'"
+    # Try to detect truly new files using git diff
+    # First, get the base and head commits of the PR
+    pr_info_command = f"gh pr view {pr_number} --json baseRefName,headRefName"
+    pr_info_output = run_command(pr_info_command)
+    print(f"PR info: {pr_info_output}")
+    
+    # Extract base and head refs
+    base_ref_command = f"gh pr view {pr_number} --json baseRefName --jq '.baseRefName'"
+    head_ref_command = f"gh pr view {pr_number} --json headRefName --jq '.headRefName'"
+    base_ref = run_command(base_ref_command)
+    head_ref = run_command(head_ref_command)
+    
+    if base_ref and head_ref:
+        print(f"PR base ref: {base_ref}, head ref: {head_ref}")
+        
+        # Use git diff with --diff-filter=A to only get added files
+        # This is the most reliable way to detect truly new files
+        diff_command = f"git diff --name-only --diff-filter=A origin/{base_ref}...origin/{head_ref}"
+        diff_output = run_command(diff_command)
+        print(f"Git diff added files: {diff_output}")
+        
+        if diff_output:
+            new_files = diff_output.split("\n")
+            new_pages = [f for f in new_files if f.startswith("_pages/")]
+            if new_pages:
+                print(f"New pages detected via git diff: {new_pages}")
+                return new_pages
+    
+    # Fallback to the previous method if git diff didn't work
+    print("Falling back to additions/deletions method")
+    new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.additions > 0 and .deletions == 0) | .path'"
     new_files_output = run_command(new_files_command)
-    print(f"New files (status == added): {new_files_output}")
+    print(f"New files (additions > 0, deletions == 0): {new_files_output}")
     
     # If we found new files, filter them for _pages directory
     if new_files_output:
