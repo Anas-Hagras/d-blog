@@ -118,35 +118,44 @@ def get_pr_added_files():
     all_files = all_files_output.split("\n")
     print(f"All files in PR: {all_files_output}")
     
-    # Try to detect truly new files using git diff
-    # First, get the base and head commits of the PR
-    pr_info_command = f"gh pr view {pr_number} --json baseRefName,headRefName"
-    pr_info_output = run_command(pr_info_command)
-    print(f"PR info: {pr_info_output}")
+    # Get the base commit SHA of the PR
+    base_sha_command = f"gh pr view {pr_number} --json baseRefOid --jq '.baseRefOid'"
+    base_sha = run_command(base_sha_command)
+    print(f"PR base SHA: {base_sha}")
     
-    # Extract base and head refs
-    base_ref_command = f"gh pr view {pr_number} --json baseRefName --jq '.baseRefName'"
-    head_ref_command = f"gh pr view {pr_number} --json headRefName --jq '.headRefName'"
-    base_ref = run_command(base_ref_command)
-    head_ref = run_command(head_ref_command)
-    
-    if base_ref and head_ref:
-        print(f"PR base ref: {base_ref}, head ref: {head_ref}")
+    if base_sha:
+        # Get all files in the PR with additions > 0 and deletions == 0
+        # These are potential new files
+        potential_new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.additions > 0 and .deletions == 0) | .path'"
+        potential_new_files_output = run_command(potential_new_files_command)
+        print(f"Potential new files (additions > 0, deletions == 0): {potential_new_files_output}")
         
-        # Use git diff with --diff-filter=A to only get added files
-        # This is the most reliable way to detect truly new files
-        diff_command = f"git diff --name-only --diff-filter=A origin/{base_ref}...origin/{head_ref}"
-        diff_output = run_command(diff_command)
-        print(f"Git diff added files: {diff_output}")
-        
-        if diff_output:
-            new_files = diff_output.split("\n")
-            new_pages = [f for f in new_files if f.startswith("_pages/")]
-            if new_pages:
-                print(f"New pages detected via git diff: {new_pages}")
-                return new_pages
+        if potential_new_files_output:
+            potential_new_files = potential_new_files_output.split("\n")
+            
+            # Filter for files in _pages directory
+            potential_new_pages = [f for f in potential_new_files if f.startswith("_pages/")]
+            
+            if potential_new_pages:
+                # For each potential new page, check if it existed in the base commit
+                truly_new_pages = []
+                for page in potential_new_pages:
+                    # Check if the file existed in the base commit
+                    file_exists_command = f"git cat-file -e {base_sha}:{page} 2>/dev/null || echo 'not_exists'"
+                    file_exists_output = run_command(file_exists_command)
+                    
+                    if file_exists_output == 'not_exists':
+                        # File didn't exist in the base commit, so it's truly new
+                        print(f"Confirmed new page: {page}")
+                        truly_new_pages.append(page)
+                    else:
+                        print(f"Page existed in base commit, not new: {page}")
+                
+                if truly_new_pages:
+                    print(f"Truly new pages: {truly_new_pages}")
+                    return truly_new_pages
     
-    # Fallback to the previous method if git diff didn't work
+    # Fallback to the previous method if the above didn't work
     print("Falling back to additions/deletions method")
     new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.additions > 0 and .deletions == 0) | .path'"
     new_files_output = run_command(new_files_command)
