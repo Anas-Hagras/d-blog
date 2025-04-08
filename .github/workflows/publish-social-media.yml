@@ -8,11 +8,21 @@ on:
       - main
     paths:
       - "social_media/**/*.txt"
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "social_media/**/*.txt"
 
 jobs:
+  # Job to publish social media content
   publish-content:
     # Only run if the PR was merged (not just closed) and the branch name follows the pattern {page_name}_social_media
-    if: github.event.pull_request.merged == true && endsWith(github.event.pull_request.head.ref, '_social_media')
+    # Or if files were pushed directly to social_media on main branch
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && endsWith(github.event.pull_request.head.ref, '_social_media')) ||
+      (github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Revert ') && contains(github.event.head_commit.modified, 'social_media/'))
 
     runs-on: ubuntu-latest
 
@@ -99,7 +109,7 @@ jobs:
           git push
 
       - name: Add comment to PR
-        if: steps.check-content.outputs.has_content == 'true'
+        if: github.event_name == 'pull_request' && steps.check-content.outputs.has_content == 'true'
         uses: peter-evans/create-or-update-comment@v2
         with:
           issue-number: ${{ github.event.pull_request.number }}
