@@ -96,3 +96,7 @@ Effectively, I was reminding my boss to be a **scientist**, and I was myself exh
 - Carol Dweck's [Growth Mindset book](https://amzn.to/2XiNqBB)
 - Adam Grant's [Give and Take book](https://amzn.to/2IN1Xwg) and [Originals book](https://amzn.to/2Knp7wq)
 - Ray Dalio's [Princples](https://amzn.to/2XhS17a) and his [iOS app](https://www.principles.com/principles-in-action/)
+
+this is just a modified content with no deletions
+
+yet another modification
