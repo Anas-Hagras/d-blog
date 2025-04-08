@@ -112,6 +112,8 @@ jobs:
       - name: Commit changes
         if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
         run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           git commit -m "Add social media content for new pages"
 
       - name: Push branch
@@ -123,6 +125,8 @@ jobs:
 
       - name: Create Pull Request
         if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           # Create pull request using GitHub CLI instead of the action
           # This avoids the issue with the action trying to push the branch again
