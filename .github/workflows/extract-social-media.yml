@@ -127,18 +127,18 @@ jobs:
           # Force push to ensure the branch is updated
           git push -f origin ${{ steps.branch.outputs.branch_name }}
 
-      - name: Create Pull Request
-        if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GH_PAT }}
-          branch: ${{ steps.branch.outputs.branch_name }}
-          base: main
-          title: Add social media content for new pages
-          body: |
-            This PR adds social media content for the following new pages:
+      # - name: Create Pull Request
+      #   if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+      #   uses: peter-evans/create-pull-request@v5
+      #   with:
+      #     token: ${{ secrets.GH_PAT }}
+      #     branch: ${{ steps.branch.outputs.branch_name }}
+      #     base: main
+      #     title: Add social media content for new pages
+      #     body: |
+      #       This PR adds social media content for the following new pages:
 
-            ${{ steps.detect.outputs.new_pages }}
+      #       ${{ steps.detect.outputs.new_pages }}
 
-            The content will be published to social media platforms when this PR is merged.
-          delete-branch: false
+      #       The content will be published to social media platforms when this PR is merged.
+      #     delete-branch: false
