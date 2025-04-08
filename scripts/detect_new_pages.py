@@ -111,11 +111,11 @@ def get_pr_added_files():
     all_files = all_files_output.split("\n")
     print(f"All files in PR: {all_files_output}")
     
-    # Get new files (files with additions but no deletions)
-    # This is a more reliable way to detect new files than using status
-    new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.additions > 0 and .deletions == 0) | .path'"
+    # Get only truly new files (not modified files)
+    # Use the status field to identify added files
+    new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.status == \"added\") | .path'"
     new_files_output = run_command(new_files_command)
-    print(f"New files (additions > 0, deletions == 0): {new_files_output}")
+    print(f"New files (status == added): {new_files_output}")
     
     # If we found new files, filter them for _pages directory
     if new_files_output:
@@ -190,9 +190,15 @@ if __name__ == "__main__":
             print(page)
         
         # Print as JSON for GitHub Actions using Environment Files
+        # Use newline-separated format for better readability in PR comments
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-            f.write(f"new_pages={','.join(new_pages)}\n")
+            # Use the multiline delimiter format for GitHub Actions outputs
+            f.write("new_pages<<EOF\n")
+            f.write("\n".join(new_pages) + "\n")
+            f.write("EOF\n")
     else:
         print("No new pages detected")
         with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-            f.write("new_pages=\n")
+            # Use the same multiline format for consistency
+            f.write("new_pages<<EOF\n")
+            f.write("EOF\n")
