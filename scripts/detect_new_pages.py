@@ -155,23 +155,7 @@ def get_pr_added_files():
                     print(f"Truly new pages: {truly_new_pages}")
                     return truly_new_pages
     
-    # Fallback to the previous method if the above didn't work
-    print("Falling back to additions/deletions method")
-    new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.additions > 0 and .deletions == 0) | .path'"
-    new_files_output = run_command(new_files_command)
-    print(f"New files (additions > 0, deletions == 0): {new_files_output}")
-    
-    # If we found new files, filter them for _pages directory
-    if new_files_output:
-        new_files = new_files_output.split("\n")
-        new_pages = [f for f in new_files if f.startswith("_pages/")]
-        print(f"New files in _pages directory: {new_pages}")
-        if new_pages:
-            return new_pages
-    
-    # If no new pages found, return empty list
     print("No new pages detected")
-    
     return []
 
 def detect_new_pages(base_ref=None, head_ref=None, pages_dir="_pages", pr_mode=False):
