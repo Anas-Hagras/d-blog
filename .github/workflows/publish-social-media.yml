@@ -18,7 +18,7 @@ jobs:
 
     # Add permissions for GitHub token
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     steps:
@@ -75,8 +75,28 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: posting-results
-          path: posting_results.json
+          path: |
+            posting_results.json
+            *.json
           retention-days: 30
+
+      - name: Commit posting results
+        if: steps.check-content.outputs.has_content == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add posting_results.json
+          # Add folder-specific posting results
+          for folder in $FOLDERS; do
+            page_name=$(basename $folder)
+            if [ -f "$page_name.json" ]; then
+              git add "$page_name.json"
+            fi
+          done
+          # Add platform-specific posting results
+          git add "social_media/**/posting_results.json"
+          git commit -m "Update posting results [skip ci]" || echo "No changes to commit"
+          git push
 
       - name: Add comment to PR
         if: steps.check-content.outputs.has_content == 'true'
