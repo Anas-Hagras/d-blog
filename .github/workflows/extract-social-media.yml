@@ -1,12 +1,7 @@
 name: Extract Social Media Content
 
 on:
-  pull_request:
-    branches:
-      - main
-      - master
-    paths:
-      - "_pages/**/*.md"
+  # Only run on push to main/master branch
   push:
     branches:
       - main
@@ -40,45 +35,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install GitHub CLI
-        run: |
-          type -p curl >/dev/null || (apt update && apt install curl -y)
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
-          && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-          && apt update \
-          && apt install gh -y
-
       - name: Detect new pages
         id: detect
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            # For PR events, use the detect_new_pages.py script with PR mode
-            # Set up GitHub token for the script to use
-            export GITHUB_TOKEN="${{ secrets.GH_PAT }}"
-            
-            # Set PR_NUMBER as an environment variable
-            export PR_NUMBER="${{ github.event.pull_request.number }}"
-            echo "Using PR #$PR_NUMBER"
-            
-            # Run the script in PR mode
-            python scripts/detect_new_pages.py --pr-mode
-            
-            # Capture the output for new pages
-            NEW_PAGES=$(python scripts/detect_new_pages.py --pr-mode | grep "^_pages/.*\.md$" || echo "")
-          else
-            # For push events, use the detect_new_pages.py script with commit range
-            # Get the before and after commit SHAs
-            BEFORE_SHA="${{ github.event.before }}"
-            AFTER_SHA="${{ github.event.after }}"
-            echo "Comparing commits $BEFORE_SHA and $AFTER_SHA"
-            
-            # Run the script with commit range
-            python scripts/detect_new_pages.py "$BEFORE_SHA" "$AFTER_SHA"
-            
-            # Capture the output for new pages
-            NEW_PAGES=$(python scripts/detect_new_pages.py "$BEFORE_SHA" "$AFTER_SHA" | grep "^_pages/.*\.md$" || echo "")
-          fi
+          # Get the before and after commit SHAs
+          BEFORE_SHA="${{ github.event.before }}"
+          AFTER_SHA="${{ github.event.after }}"
+          echo "Comparing commits $BEFORE_SHA and $AFTER_SHA"
+
+          # Run the script with commit range to detect only newly added files
+          python scripts/detect_new_pages.py "$BEFORE_SHA" "$AFTER_SHA"
+
+          # Capture the output for new pages (only _pages/*.md files)
+          NEW_PAGES=$(python scripts/detect_new_pages.py "$BEFORE_SHA" "$AFTER_SHA" | grep "^_pages/.*\.md$" || echo "")
 
           # Output the new pages
           if [ -n "$NEW_PAGES" ]; then
@@ -154,17 +123,17 @@ jobs:
 
       - name: Create Pull Request
         if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
-        run: |
-          # Create pull request using GitHub CLI instead of the action
-          # This avoids the issue with the action trying to push the branch again
-          gh pr create \
-            --title "Add social media content for new pages" \
-            --body "This PR adds social media content for the following new pages:
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GH_PAT }}
+          commit-message: Add social media content for new pages
+          title: Add social media content for new pages
+          body: |
+            This PR adds social media content for the following new pages:
 
             ${{ steps.detect.outputs.new_pages }}
 
-            The content will be published to social media platforms when this PR is merged." \
-            --base ${{ github.ref_name }} \
-            --head ${{ steps.branch.outputs.branch_name }}
+            The content will be published to social media platforms when this PR is merged.
+          branch: ${{ steps.branch.outputs.branch_name }}
+          base: main
+          delete-branch: false
