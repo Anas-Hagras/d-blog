@@ -41,7 +41,6 @@ ehthumbs.db
 Thumbs.db
 
 # Project specific
-posting_results.json
 
 .env*
 !.env.example 
