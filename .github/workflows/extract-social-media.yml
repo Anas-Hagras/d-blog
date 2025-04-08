@@ -60,9 +60,8 @@ jobs:
         run: |
           # Process the first new page to generate branch name
           if [ -n "${{ steps.detect.outputs.new_pages }}" ]; then
-            IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.new_pages }}"
-            # Get the first page
-            PAGE="${PAGES[0]}"
+            # Read the first line of the new_pages output
+            PAGE=$(echo "${{ steps.detect.outputs.new_pages }}" | head -n 1)
             
             # Extract page name from path
             # Remove _pages/ prefix and .md suffix
@@ -102,11 +101,13 @@ jobs:
             exit 1
           fi
 
-          # Process each new page
-          IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.new_pages }}"
-          for page in "${PAGES[@]}"; do
-            echo "Processing page: $page"
-            python scripts/extract_social_media_content.py "$page"
+          # Process each new page (line by line)
+          echo "${{ steps.detect.outputs.new_pages }}" | while read -r page; do
+            # Skip empty lines
+            if [ -n "$page" ]; then
+              echo "Processing page: $page"
+              python scripts/extract_social_media_content.py "$page"
+            fi
           done
 
       - name: Check for changes
