@@ -10,7 +10,7 @@ from typing import Dict, List, Any, Optional
 from .platforms import SocialMediaPlatform
 from .platforms.twitter import TwitterPlatform
 from .platforms.file import FilePlatform
-
+from typing import Union, List
 
 class SocialMediaPoster:
     """Class for posting content to social media platforms."""
@@ -26,25 +26,43 @@ class SocialMediaPoster:
         self.results = []
         
         # Initialize available platforms
-        self.platforms = self._initialize_platforms()
-    
-    def _initialize_platforms(self) -> Dict[str, SocialMediaPlatform]:
+        self.platforms = self.__class__.get_platforms(keys_only=False)
+
+    @staticmethod
+    def get_platforms(keys_only=False) -> Union[Dict[str, SocialMediaPlatform], List[str]]:
         """
-        Initialize available platforms.
+        Get available platforms.
+        
+        Args:
+            keys_only: If True, return only platform names without initializing them
+                      If False, initialize and return platform instances
         
         Returns:
-            Dict of platform name to platform instance
+            If keys_only=True: List of platform names
+            If keys_only=False: Dict of platform name to platform instance
         """
         platforms = {}
         
-        # Add Twitter platform
-        platforms["X"] = TwitterPlatform()
+        # Define all supported platforms
+        supported_platforms = {
+            "X": TwitterPlatform,
+            "File": FilePlatform,
+            # Add more platforms here as they are implemented
+            # "LinkedIn": LinkedInPlatform,
+        }
         
-        # Add File platform for testing and mocking
-        platforms["File"] = FilePlatform()
+        if keys_only:
+            # Return just the platform names without initializing
+            return list(supported_platforms.keys())
         
-        # Add more platforms here as they are implemented
-        # platforms["LinkedIn"] = LinkedInPlatform()
+        # Initialize platforms with error handling
+        for name, platform_class in supported_platforms.items():
+            try:
+                platforms[name] = platform_class()
+            except Exception as e:
+                print(f"Warning: Could not initialize platform '{name}': {str(e)}")
+                # Skip this platform if initialization fails
+                continue
         
         return platforms
     
