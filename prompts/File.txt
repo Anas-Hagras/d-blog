@@ -1,6 +1,0 @@
-Summarize the following blog post into a simple text file post. Use a direct, concise, and informative style. Start with a clear summary of the main points. Include key details and insights from the blog post. End with a conclusion or takeaway.
-
-Blog Post:
-{content}
-
-File post:

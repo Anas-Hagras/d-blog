@@ -9,7 +9,6 @@ from typing import Dict, List, Any, Optional
 
 from .platforms import SocialMediaPlatform
 from .platforms.twitter import TwitterPlatform
-from .platforms.file import FilePlatform
 from typing import Union, List
 
 class SocialMediaPoster:
@@ -46,7 +45,6 @@ class SocialMediaPoster:
         # Define all supported platforms
         supported_platforms = {
             "X": TwitterPlatform,
-            "File": FilePlatform,
             # Add more platforms here as they are implemented
             # "LinkedIn": LinkedInPlatform,
         }
@@ -105,6 +103,7 @@ class SocialMediaPoster:
         
         # Store results for each platform
         platform_results = {}
+        folder_results = []
         
         for platform_folder in platform_folders:
             platform_name = platform_folder.name
@@ -125,9 +124,13 @@ class SocialMediaPoster:
             
             # Store result for this platform
             platform_results[platform_name] = result
+            folder_results.append(result)
             
             # Save platform-specific result
             self._save_platform_result(platform_folder, result)
+        
+        # Save folder-specific results
+        self._save_folder_results(folder, folder_results)
         
         # Save overall results
         self.save_results()
@@ -218,6 +221,19 @@ class SocialMediaPoster:
         output_path = platform_folder / "posting_results.json"
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(result, f, indent=2)
+    
+    def _save_folder_results(self, folder: Path, results: List[Dict[str, Any]]):
+        """
+        Save folder-specific results to a JSON file.
+        
+        Args:
+            folder: Path to the folder
+            results: List of results to save
+        """
+        # Create folder_name.json in the root directory
+        output_path = f"{folder.name}.json"
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(results, f, indent=2)
 
     def save_results(self):
         """Save overall results to a JSON file."""
