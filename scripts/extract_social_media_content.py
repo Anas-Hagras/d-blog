@@ -114,8 +114,8 @@ def get_available_platforms():
         List of platform names
     """
     # Create a temporary poster to get available platforms
-    poster = SocialMediaPoster()
-    return list(poster.platforms.keys())
+    platforms = SocialMediaPoster.get_platforms(keys_only=True)
+    return platforms
 
 def process_page(filepath, platforms=None):
     """
