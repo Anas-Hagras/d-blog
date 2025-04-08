@@ -8,17 +8,27 @@ on:
       - main
     paths:
       - "social_media/**/*.txt"
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "social_media/**/*.txt"
 
 jobs:
+  # Job to publish social media content
   publish-content:
     # Only run if the PR was merged (not just closed) and the branch name follows the pattern {page_name}_social_media
-    if: github.event.pull_request.merged == true && endsWith(github.event.pull_request.head.ref, '_social_media')
+    # Or if files were pushed directly to social_media on main branch
+    if: |
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && endsWith(github.event.pull_request.head.ref, '_social_media')) ||
+      (github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Revert ') && contains(github.event.head_commit.modified, 'social_media/'))
 
     runs-on: ubuntu-latest
 
     # Add permissions for GitHub token
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
 
     steps:
@@ -75,11 +85,31 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: posting-results
-          path: posting_results.json
+          path: |
+            posting_results.json
+            *.json
           retention-days: 30
 
-      - name: Add comment to PR
+      - name: Commit posting results
         if: steps.check-content.outputs.has_content == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add posting_results.json
+          # Add folder-specific posting results
+          for folder in $FOLDERS; do
+            page_name=$(basename $folder)
+            if [ -f "$page_name.json" ]; then
+              git add "$page_name.json"
+            fi
+          done
+          # Add platform-specific posting results
+          git add "social_media/**/posting_results.json"
+          git commit -m "Update posting results [skip ci]" || echo "No changes to commit"
+          git push
+
+      - name: Add comment to PR
+        if: github.event_name == 'pull_request' && steps.check-content.outputs.has_content == 'true'
         uses: peter-evans/create-or-update-comment@v2
         with:
           issue-number: ${{ github.event.pull_request.number }}
