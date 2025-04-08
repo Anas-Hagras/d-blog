@@ -1,8 +1,0 @@
-Summarize the following blog post into an engaging and exciting X (Twitter) post. Use a direct, thoughtful, concise, and reflective style. Start with an intriguing hook or bold statement. Include a short personal anecdote or surprising insight. End with a provocative question or actionable takeaway that encourages interaction.
-
-Be playful and adventurous. Emojis may be used sparingly.
-
-Blog Post:
-{content}
-
-X post:

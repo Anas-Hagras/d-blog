@@ -17,50 +17,75 @@ def run_command(command):
     process = subprocess.run(command, shell=True, capture_output=True, text=True)
     if process.returncode != 0:
         print(f"Error running command: {command}")
+        print(f"Error: {process.stderr}")
         return ""
     return process.stdout.strip()
 
-def get_git_references(base_ref=None, head_ref=None):
+def get_added_files(base_ref, head_ref):
     """
-    Get Git references for comparison
+    Get files added between two Git references
     
     Args:
-        base_ref: Base Git reference (default: previous commit)
-        head_ref: Head Git reference (default: current commit)
-    
-    Returns:
-        tuple: (base_ref, head_ref)
-    """
-    if not head_ref:
-        head_ref = run_command("git rev-parse HEAD")
-    if not base_ref:
-        base_ref = run_command(f"git rev-parse {head_ref}~1")
-    
-    return base_ref, head_ref
-
-def get_added_files_from_git(base_ref, head_ref):
-    """
-    Get files added between two Git references using git diff
-    
-    Args:
-        base_ref: Base Git reference
-        head_ref: Head Git reference
+        base_ref: Base Git reference (e.g., HEAD~1)
+        head_ref: Head Git reference (e.g., HEAD)
     
     Returns:
         list: List of added files
     """
     # Use --diff-filter=A to only get added files (A = Added)
+    # This ensures we only get truly new files, not modified ones
     command = f"git diff --name-only --diff-filter=A {base_ref} {head_ref}"
     output = run_command(command)
-    
+    print(f"Git diff added files between {base_ref} and {head_ref}: {output}")
     if not output:
         return []
-    
     return output.split("\n")
 
-def get_added_files_from_pr():
+def filter_new_pages(changed_files, pages_dir="_pages"):
     """
-    Get files added in a PR using GitHub CLI
+    Filter new pages from changed files
+    
+    Args:
+        changed_files: List of changed files
+        pages_dir: Directory containing pages
+    
+    Returns:
+        list: List of new pages
+    """
+    # Pattern to match page files (e.g., _pages/YYYY-MM-DD-title.md)
+    page_pattern = re.compile(f"^{pages_dir}/.*\\.md$")
+    
+    # Filter files that match the pattern
+    new_pages = [f for f in changed_files if page_pattern.match(f)]
+    
+    return new_pages
+
+def get_latest_commit():
+    """
+    Get the latest commit hash
+    
+    Returns:
+        str: Latest commit hash
+    """
+    command = "git rev-parse HEAD"
+    return run_command(command)
+
+def get_previous_commit(current_commit):
+    """
+    Get the previous commit hash
+    
+    Args:
+        current_commit: Current commit hash
+    
+    Returns:
+        str: Previous commit hash
+    """
+    command = f"git rev-parse {current_commit}~1"
+    return run_command(command)
+
+def get_pr_added_files():
+    """
+    Get files added in a PR from GitHub event payload
     
     Returns:
         list: List of added files
@@ -71,48 +96,67 @@ def get_added_files_from_pr():
         print("PR_NUMBER environment variable not set")
         return []
     
+    print(f"Checking PR #{pr_number} for added files")
+    
+    # Get detailed file information from the PR
+    debug_command = f"gh pr view {pr_number} --json files"
+    debug_output = run_command(debug_command)
+    print(f"Raw PR files data: {debug_output}")
+    
+    # Print more detailed debug information about each file
+    detailed_debug_command = f"gh pr view {pr_number} --json files --jq '.files[] | {{path: .path, additions: .additions, deletions: .deletions, status: .status}}'"
+    detailed_debug_output = run_command(detailed_debug_command)
+    print(f"Detailed file information: {detailed_debug_output}")
+    
+    # Get all files in the PR
+    all_files_command = f"gh pr view {pr_number} --json files --jq '.files[].path'"
+    all_files_output = run_command(all_files_command)
+    if not all_files_output:
+        print("No files found in PR")
+        return []
+    
+    all_files = all_files_output.split("\n")
+    print(f"All files in PR: {all_files_output}")
+    
     # Get the base commit SHA of the PR
-    base_sha = run_command(f"gh pr view {pr_number} --json baseRefOid --jq '.baseRefOid'")
-    if not base_sha:
-        return []
+    base_sha_command = f"gh pr view {pr_number} --json baseRefOid --jq '.baseRefOid'"
+    base_sha = run_command(base_sha_command)
+    print(f"PR base SHA: {base_sha}")
     
-    # Get files with additions > 0 and deletions == 0 (likely new files)
-    command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.additions > 0 and .deletions == 0) | .path'"
-    output = run_command(command)
-    
-    if not output:
-        return []
-    
-    potential_new_files = output.split("\n")
-    
-    # Verify each file is truly new by checking if it existed in the base commit
-    truly_new_files = []
-    for file_path in potential_new_files:
-        # Check if the file existed in the base commit
-        check_command = f"git cat-file -e {base_sha}:{file_path} 2>/dev/null || echo 'not_exists'"
-        result = run_command(check_command)
+    if base_sha:
+        # Get all files in the PR with additions > 0 and deletions == 0
+        # These are potential new files
+        potential_new_files_command = f"gh pr view {pr_number} --json files --jq '.files[] | select(.additions > 0 and .deletions == 0) | .path'"
+        potential_new_files_output = run_command(potential_new_files_command)
+        print(f"Potential new files (additions > 0, deletions == 0): {potential_new_files_output}")
         
-        if result == 'not_exists':
-            truly_new_files.append(file_path)
+        if potential_new_files_output:
+            potential_new_files = potential_new_files_output.split("\n")
+            
+            # Filter for files in _pages directory
+            potential_new_pages = [f for f in potential_new_files if f.startswith("_pages/")]
+            
+            if potential_new_pages:
+                # For each potential new page, check if it existed in the base commit
+                truly_new_pages = []
+                for page in potential_new_pages:
+                    # Check if the file existed in the base commit
+                    file_exists_command = f"git cat-file -e {base_sha}:{page} 2>/dev/null || echo 'not_exists'"
+                    file_exists_output = run_command(file_exists_command)
+                    
+                    if file_exists_output == 'not_exists':
+                        # File didn't exist in the base commit, so it's truly new
+                        print(f"Confirmed new page: {page}")
+                        truly_new_pages.append(page)
+                    else:
+                        print(f"Page existed in base commit, not new: {page}")
+                
+                if truly_new_pages:
+                    print(f"Truly new pages: {truly_new_pages}")
+                    return truly_new_pages
     
-    return truly_new_files
-
-def filter_pages(files, pages_dir="_pages"):
-    """
-    Filter files to only include pages
-    
-    Args:
-        files: List of files
-        pages_dir: Directory containing pages
-    
-    Returns:
-        list: List of page files
-    """
-    # Pattern to match page files (e.g., _pages/YYYY-MM-DD-title.md)
-    page_pattern = re.compile(f"^{pages_dir}/.*\\.md$")
-    
-    # Filter files that match the pattern
-    return [f for f in files if page_pattern.match(f)]
+    print("No new pages detected")
+    return []
 
 def detect_new_pages(base_ref=None, head_ref=None, pages_dir="_pages", pr_mode=False):
     """
@@ -127,21 +171,21 @@ def detect_new_pages(base_ref=None, head_ref=None, pages_dir="_pages", pr_mode=F
     Returns:
         list: List of new pages
     """
-    # Get added files based on mode
     if pr_mode:
-        added_files = get_added_files_from_pr()
+        # Get added files from PR
+        changed_files = get_pr_added_files()
     else:
-        # Get Git references
-        base_ref, head_ref = get_git_references(base_ref, head_ref)
-        added_files = get_added_files_from_git(base_ref, head_ref)
+        # If no references provided, use current and previous commits
+        if not head_ref:
+            head_ref = get_latest_commit()
+        if not base_ref:
+            base_ref = get_previous_commit(head_ref)
+        
+        # Get added files
+        changed_files = get_added_files(base_ref, head_ref)
     
-    # Filter to only include pages
-    new_pages = filter_pages(added_files, pages_dir)
-    
-    if new_pages:
-        print(f"Found {len(new_pages)} new pages")
-    else:
-        print("No new pages detected")
+    # Filter new pages
+    new_pages = filter_new_pages(changed_files, pages_dir)
     
     return new_pages
 
@@ -173,15 +217,16 @@ if __name__ == "__main__":
         for page in new_pages:
             print(page)
         
-        # Output for GitHub Actions if GITHUB_OUTPUT is set
-        if 'GITHUB_OUTPUT' in os.environ:
-            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write("new_pages<<EOF\n")
-                f.write("\n".join(new_pages) + "\n")
-                f.write("EOF\n")
+        # Print as JSON for GitHub Actions using Environment Files
+        # Use newline-separated format for better readability in PR comments
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            # Use the multiline delimiter format for GitHub Actions outputs
+            f.write("new_pages<<EOF\n")
+            f.write("\n".join(new_pages) + "\n")
+            f.write("EOF\n")
     else:
         print("No new pages detected")
-        if 'GITHUB_OUTPUT' in os.environ:
-            with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write("new_pages<<EOF\n")
-                f.write("EOF\n")
+        with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+            # Use the same multiline format for consistency
+            f.write("new_pages<<EOF\n")
+            f.write("EOF\n")

@@ -11,49 +11,55 @@ The script automatically detects the platforms from the subfolders in each folde
 import os
 import sys
 from pathlib import Path
+from typing import List
 
 from posting import SocialMediaPoster
 
 
-def post_content(folder_path: str, output_path: str = "posting_results.json") -> None:
+def post_from_folder(folder_path: str, output_path: str = "posting_results.json") -> None:
     """
-    Post content from a folder or all folders to social media platforms.
+    Post content from a folder to social media platforms.
     
     Args:
-        folder_path: Path to the folder containing platform folders or the base directory
+        folder_path: Path to the folder containing platform folders
         output_path: Path to save the posting results
     """
-    folder_path = Path(folder_path)
+    poster = SocialMediaPoster(output_path)
+    results = poster.post_from_folder(folder_path)
+    
+    # Print summary
+    success_count = sum(1 for r in results if r.get("status") == "success")
+    print(f"\n✅ Posted {success_count}/{len(results)} items")
+    print(f"✅ Results saved to {output_path}")
+
+
+def post_from_all_folders(base_dir: str, output_path: str = "posting_results.json") -> None:
+    """
+    Post content from all folders in a directory to social media platforms.
+    
+    Args:
+        base_dir: Path to the base directory containing page folders
+        output_path: Path to save the posting results
+    """
+    base_path = Path(base_dir)
+    
+    # Get all page folders
+    page_folders = [p for p in base_path.iterdir() if p.is_dir()]
     
     # Create poster
     poster = SocialMediaPoster(output_path)
     
-    # Check if folder is the social_media directory (post from all folders)
-    if folder_path.name == "social_media":
-        # Get all page folders
-        page_folders = [p for p in folder_path.iterdir() if p.is_dir()]
-        
-        # Post from each folder
-        all_results = []
-        for folder in page_folders:
-            print(f"\nProcessing folder: {folder}")
-            results = poster.post_from_folder(str(folder))
-            all_results.extend(results)
-        
-        # Print summary
-        if all_results:
-            success_count = sum(1 for r in all_results if r.get("status") == "success")
-            print(f"\n✅ Posted {success_count}/{len(all_results)} items")
-            print(f"✅ Results saved to {output_path}")
-    else:
-        # Post from specific folder
-        results = poster.post_from_folder(str(folder_path))
-        
-        # Print summary
-        if results:
-            success_count = sum(1 for r in results if r.get("status") == "success")
-            print(f"\n✅ Posted {success_count}/{len(results)} items")
-            print(f"✅ Results saved to {output_path}")
+    # Post from each folder
+    all_results = []
+    for folder in page_folders:
+        print(f"\nProcessing folder: {folder}")
+        results = poster.post_from_folder(str(folder))
+        all_results.extend(results)
+    
+    # Print summary
+    success_count = sum(1 for r in all_results if r.get("status") == "success")
+    print(f"\n✅ Posted {success_count}/{len(all_results)} items")
+    print(f"✅ Results saved to {output_path}")
 
 
 def main():
@@ -80,8 +86,13 @@ def main():
         print(f"Not a directory: {folder_path}")
         sys.exit(1)
     
-    # Post content
-    post_content(folder_path, output_file)
+    # Check if folder is the social_media directory
+    if os.path.basename(folder_path) == "social_media":
+        # Post from all folders
+        post_from_all_folders(folder_path, output_file)
+    else:
+        # Post from specific folder
+        post_from_folder(folder_path, output_file)
 
 
 if __name__ == "__main__":
