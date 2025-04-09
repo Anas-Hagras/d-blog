@@ -1,6 +1,6 @@
-# Blog Social Media Automation
+# 🚀 Blog Social Media Automation
 
-A robust system that automatically generates and publishes social media content for your blog posts.
+A robust system that automatically generates and publishes social media content for your blog posts. ✨
 
 ## Table of Contents
 
@@ -8,7 +8,7 @@ A robust system that automatically generates and publishes social media content 
 - [Workflow](#workflow)
 - [Setup](#setup)
   - [Prerequisites](#prerequisites)
-  - [Creating an X (Twitter) Account and Getting Tokens](#creating-an-x-twitter-account-and-getting-tokens)
+  - [Creating an X Account and Getting Tokens](#creating-an-x-account-and-getting-tokens)
   - [Environment Variables](#environment-variables)
   - [Repository Settings](#repository-settings)
 - [Usage](#usage)
@@ -20,27 +20,27 @@ A robust system that automatically generates and publishes social media content 
 - [Scripts Directory Overview](#scripts-directory-overview)
 - [Development Guide](#development-guide)
 
-## Overview
+## 📋 Overview
 
 This project automates the process of generating and publishing social media content for blog posts. When new blog posts are added to your repository, the system automatically:
 
-1. Detects new pages
-2. Generates tailored social media content for each platform
-3. Creates a pull request with the generated content
-4. After merging, publishes the content to configured social media platforms
+1. 🔍 Detects new pages
+2. ✍️ Generates tailored social media content for each platform
+3. 🔄 Creates a pull request with the generated content
+4. 🚀 After merging, publishes the content to configured social media platforms
 
-## Workflow
+## 🔄 Workflow
 
 The system operates in a two-step workflow:
 
-1. **Content Generation**:
+1. **Content Generation** 📝:
 
    - When a new page is added to the `_pages` directory (either from a push to main or a PR)
    - The first GitHub Action is triggered
    - It generates social media content using AI
    - Creates a new PR containing the generated content
 
-2. **Content Publishing**:
+2. **Content Publishing** 📢:
    - After the content PR is merged to main
    - The second GitHub Action is triggered
    - It publishes the content to the configured social media platforms
@@ -48,20 +48,20 @@ The system operates in a two-step workflow:
 
 You can check the posting results by revisiting the PR after it's merged - the results will be visible in the comments section.
 
-## Setup
+## 🛠️ Setup
 
 ### Prerequisites
 
 - GitHub repository
 - OpenAI API key
-- Social media accounts (X/Twitter, LinkedIn, etc.)
+- Social media accounts (X, LinkedIn, etc.)
 
-### Creating an X (Twitter) Account and Getting Tokens
+### Creating an X Account and Getting Tokens
 
-1. **Create a Twitter Developer Account**:
+1. **Create an X Developer Account**:
 
-   - Go to [Twitter Developer Portal](https://developer.twitter.com/en/portal/dashboard)
-   - Sign in with your Twitter account
+   - Go to [X Developer Portal](https://developer.twitter.com/en/portal/dashboard)
+   - Sign in with your X account
    - Apply for a developer account if you don't have one
 
 2. **Create a Project and App**:
@@ -70,13 +70,13 @@ You can check the posting results by revisiting the PR after it's merged - the r
    - Create an App within that Project
    - Set App permissions to "Read and Write"
 
-3. **Generate Authentication Tokens**:
+3. **Generate Authentication Tokens** 🔑:
    - Navigate to the "Keys and Tokens" tab
    - Generate "Consumer Keys" (API Key and Secret)
    - Generate "Access Token and Secret"
    - Save all four values securely
 
-### Environment Variables
+### Environment Variables 🔐
 
 Create a `.env` file in the root directory with the following variables:
 
@@ -88,7 +88,7 @@ X_ACCESS_TOKEN=your_twitter_access_token
 X_ACCESS_SECRET=your_twitter_access_secret
 ```
 
-### Repository Settings
+### Repository Settings ⚙️
 
 1. **Add Environment Variables to GitHub**:
 
@@ -105,9 +105,9 @@ X_ACCESS_SECRET=your_twitter_access_secret
    - Ensure GitHub Actions are enabled for your repository
    - The workflows will be automatically triggered when new pages are added
 
-## Usage
+## 📝 Usage
 
-### Adjusting Prompts
+### Adjusting Prompts 🤖
 
 Prompts control how the AI generates content for each platform. They are located in the `prompts/` directory.
 
@@ -120,7 +120,7 @@ To adjust a prompt:
 Example prompt structure:
 
 ```
-Summarize the following blog post into an engaging X (Twitter) post.
+Summarize the following blog post into an engaging X post.
 Use a direct, thoughtful style. Include a hook and end with a question.
 It SHOULD NOT be more than 200 chars.
 
@@ -130,7 +130,7 @@ Blog Post:
 X post:
 ```
 
-### Adding Media to Posts
+### Adding Media to Posts 🖼️
 
 To include media with your social media posts:
 
@@ -146,7 +146,7 @@ To include media with your social media posts:
 
 The system will automatically detect and attach these media files when posting.
 
-### Checking Posting Results
+### Checking Posting Results 📊
 
 After a PR with social media content is merged:
 
@@ -154,7 +154,7 @@ After a PR with social media content is merged:
 2. Check the comments section to see posting results
 3. Results include status, post URL, and any errors
 
-## Adding a New Platform Integration
+## 🔌 Adding a New Platform Integration
 
 To add support for a new social media platform:
 
@@ -202,18 +202,17 @@ To add support for a new social media platform:
    - Add the required API keys/tokens to your `.env` file
    - Add the secrets to GitHub repository settings
 
-## Limitations
+## ⚠️ Limitations
 
 Current limitations of the system:
 
 - **Supported Operations**: The system currently only supports adding new pages. Modifying or deleting existing pages is not supported yet.
-- **X API Limits**: Be aware of Twitter's API rate limits:
-  - 50 tweets per day for free tier accounts
-  - 1500 tweets per month
+- **X API Limits**: Be aware of X's API rate limits:
+  - 17 posts per day for free tier accounts
   - Media uploads count toward daily limits
-  - Check [Twitter API documentation](https://developer.twitter.com/en/docs/twitter-api/rate-limits) for the latest limits
+  - Check [X API documentation](https://developer.twitter.com/en/docs/twitter-api/rate-limits) for the latest limits
 
-## Scripts Directory Overview
+## 📁 Scripts Directory Overview
 
 - `detect_new_pages.py`: Detects new pages added to the repository
 - `extract_social_media_content.py`: Generates social media content using OpenAI
@@ -221,9 +220,9 @@ Current limitations of the system:
 - `posting/`: Module containing platform implementations
   - `poster.py`: Main class for posting content
   - `platforms/`: Directory containing platform-specific implementations
-    - `twitter.py`: X/Twitter platform implementation
+    - `twitter.py`: X platform implementation
 
-## Development Guide
+## 👨‍💻 Development Guide
 
 To set up the project for development:
 
@@ -245,12 +244,6 @@ To set up the project for development:
 4. **Start adding new pages**:
    - Add new markdown files to the `_pages` directory
    - Commit and push to main or create a PR
-   - The workflow will automatically generate and publish content
+   - The workflow will automatically generate content (but not publish until the PR from the first action is merged into main)
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-[MIT License](LICENSE)
+> **Note about media files** 📌: When adding media files for posts, ensure they are in the same branch as the content for the publish workflow to detect them properly.
