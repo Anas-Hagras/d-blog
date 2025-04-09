@@ -2,6 +2,8 @@ Summarize the following blog post into an engaging and exciting X (Twitter) post
 
 Be playful and adventurous. Emojis may be used sparingly.
 
+It SHOULD NOT be more than 200 chars.
+
 Blog Post:
 {content}
 
