@@ -46,12 +46,21 @@ jobs:
         id: check-new-folders
         run: |
           # Get all added files from the commit
-          ADDED_FILES=$(git diff --name-status ${{ github.event.before }} ${{ github.event.after }} | grep "^A" | awk '{print $2}' | grep "^social_media/")
+          # Use || true to prevent failure if grep finds no matches
+          DIFF_OUTPUT=$(git diff --name-status ${{ github.event.before }} ${{ github.event.after }})
+          echo "Diff output:"
+          echo "$DIFF_OUTPUT"
 
-          # Extract unique folder paths (one level below social_media/)
+          # Find added files (A) in social_media directory, handling case where grep finds no matches
+          ADDED_FILES=$(echo "$DIFF_OUTPUT" | grep "^A" | awk '{print $2}' | grep "^social_media/" || true)
+
+          # Check if we found any added files
           if [[ -n "$ADDED_FILES" ]]; then
+            echo "Added files in social_media directory:"
+            echo "$ADDED_FILES"
+            
             # Extract the page folders (social_media/{page})
-            PAGE_FOLDERS=$(echo "$ADDED_FILES" | grep -o "social_media/[^/]*" | sort -u)
+            PAGE_FOLDERS=$(echo "$ADDED_FILES" | grep -o "social_media/[^/]*" | sort -u || true)
             
             if [[ -n "$PAGE_FOLDERS" ]]; then
               echo "New social_media page folders detected:"
@@ -90,12 +99,17 @@ jobs:
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
         run: |
           # Use the page folders directly from the check-new-folders step
-          echo "${{ steps.check-new-folders.outputs.page_folders }}" | while read folder; do
-            if [[ -n "$folder" ]]; then
-              echo "Processing folder: $folder"
-              python scripts/post_social_media.py "$folder" "posting_results.json"
-            fi
-          done
+          # Handle case where there are no folders (should not happen due to if condition above)
+          if [[ -n "${{ steps.check-new-folders.outputs.page_folders }}" ]]; then
+            echo "${{ steps.check-new-folders.outputs.page_folders }}" | while read folder; do
+              if [[ -n "$folder" ]]; then
+                echo "Processing folder: $folder"
+                python scripts/post_social_media.py "$folder" "posting_results.json"
+              fi
+            done
+          else
+            echo "No folders to process"
+          fi
 
       - name: Upload posting results
         if: steps.check-content.outputs.has_content == 'true'
