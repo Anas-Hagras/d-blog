@@ -167,4 +167,9 @@ jobs:
 
             ${{ steps.extract_platforms.outputs.formatted_list }}
 
+            ### Posting Results:
+            ```json
+            $(cat posting_results.json)
+            ```
+
             Check the workflow run for detailed results.
