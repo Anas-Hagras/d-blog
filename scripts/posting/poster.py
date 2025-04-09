@@ -230,10 +230,11 @@ class SocialMediaPoster:
             folder: Path to the folder
             results: List of results to save
         """
-        # Create folder_name.json in the root directory
-        output_path = f"{folder.name}.json"
-        with open(output_path, 'w', encoding='utf-8') as f:
+        # Create posting_results.json in the folder itself
+        folder_output_path = folder / "posting_results.json"
+        with open(folder_output_path, 'w', encoding='utf-8') as f:
             json.dump(results, f, indent=2)
+            
 
     def save_results(self):
         """Save overall results to a JSON file."""

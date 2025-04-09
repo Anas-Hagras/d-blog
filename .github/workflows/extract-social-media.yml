@@ -12,8 +12,8 @@ on:
 
 jobs:
   extract-content:
-    # Skip if it's a revert commit
-    if: ${{ !startsWith(github.event.head_commit.message, 'Revert ') }}
+    # Skip if it's a revert commit or from a branch ending with _social_media
+    if: ${{ !startsWith(github.event.head_commit.message, 'Revert ') && !endsWith(github.event.ref, '_social_media') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -121,7 +121,6 @@ jobs:
         id: check_changes
         if: steps.detect.outputs.new_pages != ''
         run: |
-          git add Social_media/
           git add social_media/
           # Check if there are any changes to commit
           if git diff --staged --quiet; then

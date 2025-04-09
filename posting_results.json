@@ -1,20 +1,11 @@
 [
   {
-    "platform": "File",
-    "page_name": "x1",
-    "id": "x1_20250408_205926.txt",
-    "text": "Clean Up Testing Overview\n\nSummary:\nThe blog post discusses the initial phase of implementing \"X's\" in clean-up testing. It focuses on the objectives, methodologies, and expected outcomes of the testing process.\n\nKey Details:\n- Introduction to the concept of \"X's\" within the testing framework.\n- Explanation of the testing goals, including efficiency improvement and error reduction.\n- Description of the methodologies used in the clean-up testing.\n- Insights into the preliminary results and anticipated benefits for future applications.\n\nConclusion:\nThe introduction of \"X's\" in clean-up testing represents a significant step towards optimizing testing processes. The early stages show promise in enhancing performance and reliability, setting a strong foundation for further testing advancements.",
-    "created_at": "2025-04-08 20:59:26",
-    "url": "file://G:\\ProjectManager\\2025\\d-blog\\output\\file_posts\\x1_20250408_205926.txt",
-    "status": "success"
-  },
-  {
     "platform": "X",
-    "page_name": "x1",
-    "id": "1909712742497255551",
-    "text": "\ud83d\ude80 Ready for a fresh start? Cleaning up your digital space can be as refreshing as a spring clean! \ud83c\udf3f",
-    "created_at": "2025-04-08 20:59:33",
-    "url": "https://x.com/AnasHagras9/status/1909712742497255551",
+    "page_name": "anas",
+    "id": "1909766291923017813",
+    "text": "this is the content to be posted!",
+    "created_at": "2025-04-09 00:32:20",
+    "url": "https://x.com/AnasHagras9/status/1909766291923017813",
     "status": "success"
   }
 ]

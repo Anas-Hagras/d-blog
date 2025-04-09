@@ -91,22 +91,35 @@ jobs:
           retention-days: 30
 
       - name: Commit posting results
-        if: steps.check-content.outputs.has_content == 'true'
+        if: steps.check-content.outputs.has_content == 'true' && github.event_name == 'pull_request'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+
+          # Get the branch name from the PR
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+
+          # Checkout the branch
+          git fetch origin $BRANCH_NAME
+          git checkout $BRANCH_NAME
+
+          # Add all social media content
+          git add social_media/
           git add posting_results.json
-          # Add folder-specific posting results
-          for folder in $FOLDERS; do
-            page_name=$(basename $folder)
-            if [ -f "$page_name.json" ]; then
-              git add "$page_name.json"
-            fi
-          done
-          # Add platform-specific posting results
-          git add "social_media/**/posting_results.json"
-          git commit -m "Update posting results [skip ci]" || echo "No changes to commit"
-          git push
+
+          # Commit and push to the branch
+          git commit -m "Update posting results " || echo "No changes to commit"
+          git push origin $BRANCH_NAME
+
+      # - name: Commit posting results to main
+      #   if: steps.check-content.outputs.has_content == 'true' && github.event_name == 'push'
+      #   run: |
+      #     git config --local user.email "action@github.com"
+      #     git config --local user.name "GitHub Action"
+      #     git add social_media/
+      #     git add posting_results.json
+      #     git commit -m "Update posting results [skip ci]" || echo "No changes to commit"
+      #     git push
 
       - name: Add comment to PR
         if: github.event_name == 'pull_request' && steps.check-content.outputs.has_content == 'true'
