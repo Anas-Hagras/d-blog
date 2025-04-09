@@ -42,16 +42,43 @@ jobs:
         with:
           files: social_media/**/*.txt
 
+      - name: Check for newly added social_media folders
+        id: check-new-folders
+        run: |
+          # Get all added files from the commit
+          ADDED_FILES=$(git diff --name-status ${{ github.event.before }} ${{ github.event.after }} | grep "^A" | awk '{print $2}' | grep "^social_media/")
+
+          # Extract unique folder paths (one level below social_media/)
+          if [[ -n "$ADDED_FILES" ]]; then
+            # Extract the page folders (social_media/{page})
+            PAGE_FOLDERS=$(echo "$ADDED_FILES" | grep -o "social_media/[^/]*" | sort -u)
+            
+            if [[ -n "$PAGE_FOLDERS" ]]; then
+              echo "New social_media page folders detected:"
+              echo "$PAGE_FOLDERS"
+              echo "has_new_folders=true" >> $GITHUB_OUTPUT
+              echo "page_folders<<EOF" >> $GITHUB_OUTPUT
+              echo "$PAGE_FOLDERS" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "No new social_media page folders detected"
+              echo "has_new_folders=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "No added files in social_media directory"
+            echo "has_new_folders=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Check for social media content
         id: check-content
         run: |
-          if [[ -n "${{ steps.changed-files.outputs.all_changed_files }}" ]]; then
+          if [[ "${{ steps.check-new-folders.outputs.has_new_folders }}" == "true" ]]; then
             echo "has_content=true" >> $GITHUB_OUTPUT
-            echo "Changed files:"
-            echo "${{ steps.changed-files.outputs.all_changed_files }}"
+            echo "New social media page folders detected:"
+            echo "${{ steps.check-new-folders.outputs.page_folders }}"
           else
             echo "has_content=false" >> $GITHUB_OUTPUT
-            echo "No social media content files changed"
+            echo "No new social media page folders detected"
           fi
 
       - name: Publish to social media
@@ -62,13 +89,12 @@ jobs:
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
         run: |
-          # Get unique parent folders from changed files (one level up from platform folders)
-          FOLDERS=$(for file in ${{ steps.changed-files.outputs.all_changed_files }}; do dirname $(dirname $file); done | sort -u)
-
-          # Post to social media platforms
-          for folder in $FOLDERS; do
-            echo "Processing folder: $folder"
-            python scripts/post_social_media.py "$folder" "posting_results.json"
+          # Use the page folders directly from the check-new-folders step
+          echo "${{ steps.check-new-folders.outputs.page_folders }}" | while read folder; do
+            if [[ -n "$folder" ]]; then
+              echo "Processing folder: $folder"
+              python scripts/post_social_media.py "$folder" "posting_results.json"
+            fi
           done
 
       - name: Upload posting results
