@@ -146,6 +146,8 @@ To include media with your social media posts:
 
 The system will automatically detect and attach these media files when posting.
 
+> **Note about media files** 📌: When adding media files for posts, ensure they are in the same branch as the content for the publish workflow to detect them properly.
+
 ### Checking Posting Results 📊
 
 After a PR with social media content is merged:
@@ -245,5 +247,3 @@ To set up the project for development:
    - Add new markdown files to the `_pages` directory
    - Commit and push to main or create a PR
    - The workflow will automatically generate content (but not publish until the PR from the first action is merged into main)
-
-> **Note about media files** 📌: When adding media files for posts, ensure they are in the same branch as the content for the publish workflow to detect them properly.
