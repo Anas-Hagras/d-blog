@@ -224,6 +224,9 @@ To add support for a new social media platform:
 Current limitations of the system:
 
 - **Supported Operations**: The system currently only supports adding new pages. Modifying or deleting existing pages is not supported yet.
+
+> **Note about supported operations** 📌: modifying the content of the page triggers a new extract section media actions but it's overriding the content in the social media
+
 - **X API Limits**: Be aware of X's API rate limits:
   - 17 posts per day for free tier accounts
   - Media uploads count toward daily limits
