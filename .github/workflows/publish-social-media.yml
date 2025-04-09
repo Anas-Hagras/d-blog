@@ -105,7 +105,7 @@ jobs:
             echo "is_merge_commit=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Extract successful platforms
+      - name: Extract successful platforms and posting results
         id: extract_platforms
         if: steps.check-content.outputs.has_content == 'true'
         run: |
@@ -127,6 +127,12 @@ jobs:
           else
             echo "formatted_list=- None (check logs for errors)" >> $GITHUB_OUTPUT
           fi
+
+          # Get the posting results content
+          POSTING_RESULTS=$(cat posting_results.json)
+          echo "posting_results<<EOF" >> $GITHUB_OUTPUT
+          echo "$POSTING_RESULTS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Commit posting results to branch
         if: steps.extract_branch.outputs.is_merge_commit == 'true' && steps.check-content.outputs.has_content == 'true'
@@ -169,7 +175,7 @@ jobs:
 
             ### Posting Results:
             ```json
-            $(cat posting_results.json)
+            ${{ steps.extract_platforms.outputs.posting_results }}
             ```
 
             Check the workflow run for detailed results.
