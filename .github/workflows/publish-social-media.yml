@@ -1,3 +1,4 @@
+# This workflow publishes social media content to various platforms
 name: Publish Social Media Content
 
 on:
