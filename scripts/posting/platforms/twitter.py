@@ -18,10 +18,10 @@ class TwitterPlatform(SocialMediaPlatform):
     
     def _verify_credentials(self):
         required_creds = [
-            "X_API_KEY",
-            "X_API_SECRET",
-            "X_ACCESS_TOKEN", 
-            "X_ACCESS_SECRET"
+            "TWITTER_API_KEY",
+            "TWITTER_API_SECRET",
+            "TWITTER_ACCESS_TOKEN", 
+            "TWITTER_ACCESS_SECRET"
         ]
         missing = [cred for cred in required_creds if not os.getenv(cred)]
         if missing:
@@ -30,19 +30,19 @@ class TwitterPlatform(SocialMediaPlatform):
     def get_client(self) -> tweepy.Client:
         """Initialize and return Twitter v2 API client."""
         return tweepy.Client(
-            consumer_key=os.getenv("X_API_KEY"),
-            consumer_secret=os.getenv("X_API_SECRET"),
-            access_token=os.getenv("X_ACCESS_TOKEN"),
-            access_token_secret=os.getenv("X_ACCESS_SECRET"),
+            consumer_key=os.getenv("TWITTER_API_KEY"),
+            consumer_secret=os.getenv("TWITTER_API_SECRET"),
+            access_token=os.getenv("TWITTER_ACCESS_TOKEN"),
+            access_token_secret=os.getenv("TWITTER_ACCESS_SECRET"),
         )
     
     def get_auth(self) -> tweepy.OAuth1UserHandler:
         """Initialize and return Twitter OAuth1 handler for v1.1 API."""
         auth = tweepy.OAuth1UserHandler(
-            os.getenv("X_API_KEY"),
-            os.getenv("X_API_SECRET"),
-            os.getenv("X_ACCESS_TOKEN"),
-            os.getenv("X_ACCESS_SECRET")
+            os.getenv("TWITTER_API_KEY"),
+            os.getenv("TWITTER_API_SECRET"),
+            os.getenv("TWITTER_ACCESS_TOKEN"),
+            os.getenv("TWITTER_ACCESS_SECRET")
         )
         return auth
     
