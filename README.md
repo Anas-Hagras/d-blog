@@ -100,8 +100,23 @@ X_ACCESS_SECRET=your_twitter_access_secret
      - `X_API_SECRET`
      - `X_ACCESS_TOKEN`
      - `X_ACCESS_SECRET`
+     - `GH_PAT` (GitHub Personal Access Token)
 
-2. **Configure GitHub Actions**:
+2. **Creating a GitHub Personal Access Token (GH_PAT)**:
+
+   - Go to your GitHub account settings
+   - Navigate to Developer settings > Personal access tokens > Tokens (classic)
+   - Click "Generate new token" and select "Generate new token (classic)"
+   - Give your token a descriptive name
+   - Set the expiration as needed (recommended: 90 days or custom expiration)
+   - Select the following scopes:
+     - `repo` (Full control of private repositories)
+     - `workflow` (Update GitHub Action workflows)
+   - Click "Generate token"
+   - Copy the token immediately (you won't be able to see it again)
+   - Add this token as the `GH_PAT` secret in your repository settings
+
+3. **Configure GitHub Actions**:
    - Ensure GitHub Actions are enabled for your repository
    - The workflows will be automatically triggered when new pages are added
 
