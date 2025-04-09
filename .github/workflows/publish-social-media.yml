@@ -81,48 +81,90 @@ jobs:
             *.json
           retention-days: 30
 
-      - name: Commit posting results
-        if: steps.check-content.outputs.has_content == 'true' && github.event_name == 'pull_request'
+      - name: Extract branch name from commit message
+        id: extract_branch
+        if: steps.check-content.outputs.has_content == 'true'
+        run: |
+          # Extract the branch name from the commit message if it's a merge commit
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" == *"Merge pull request"* && "$COMMIT_MSG" == *"_social_media"* ]]; then
+            # Extract the branch name from the commit message
+            # Format: "Merge pull request #X from user/branch_name"
+            BRANCH_NAME=$(echo "$COMMIT_MSG" | grep -o "from [^/]*/[^ ]*" | sed 's/from [^/]*\///')
+            echo "Found branch name in commit message: $BRANCH_NAME"
+            echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+            
+            # Extract PR number
+            PR_NUMBER=$(echo "$COMMIT_MSG" | grep -o "#[0-9]*" | sed 's/#//')
+            echo "Found PR number: $PR_NUMBER"
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            
+            echo "is_merge_commit=true" >> $GITHUB_OUTPUT
+          else
+            echo "Not a merge commit or not from a _social_media branch"
+            echo "is_merge_commit=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract successful platforms
+        id: extract_platforms
+        if: steps.check-content.outputs.has_content == 'true'
+        run: |
+          # Parse the posting results to get successful platforms
+          PLATFORMS=$(jq -r '.[] | select(.status == "success") | .platform' posting_results.json | sort -u | tr '\n' ',' | sed 's/,$//')
+          echo "Successful platforms: $PLATFORMS"
+          echo "platforms=$PLATFORMS" >> $GITHUB_OUTPUT
+
+          # Create a formatted list for the PR comment
+          if [ -n "$PLATFORMS" ]; then
+            FORMATTED_LIST=""
+            IFS=',' read -ra PLATFORM_ARRAY <<< "$PLATFORMS"
+            for platform in "${PLATFORM_ARRAY[@]}"; do
+              FORMATTED_LIST="$FORMATTED_LIST- $platform\n"
+            done
+            echo "formatted_list<<EOF" >> $GITHUB_OUTPUT
+            echo -e "$FORMATTED_LIST" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "formatted_list=- None (check logs for errors)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit posting results to branch
+        if: steps.extract_branch.outputs.is_merge_commit == 'true' && steps.check-content.outputs.has_content == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-          # Get the branch name from the PR
-          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          # Get the branch name from the extracted branch
+          BRANCH_NAME="${{ steps.extract_branch.outputs.branch_name }}"
 
           # Checkout the branch
-          git fetch origin $BRANCH_NAME
-          git checkout $BRANCH_NAME
+          git fetch origin $BRANCH_NAME || echo "Branch may not exist anymore"
+          git checkout $BRANCH_NAME || echo "Cannot checkout branch, it may have been deleted"
 
-          # Add all social media content
-          git add social_media/
-          git add posting_results.json
+          # Only proceed if branch checkout was successful
+          if [ $? -eq 0 ]; then
+            # Add all social media content
+            git add social_media/
+            git add posting_results.json
 
-          # Commit and push to the branch
-          git commit -m "Update posting results " || echo "No changes to commit"
-          git push origin $BRANCH_NAME
-
-      # - name: Commit posting results to main
-      #   if: steps.check-content.outputs.has_content == 'true' && github.event_name == 'push'
-      #   run: |
-      #     git config --local user.email "action@github.com"
-      #     git config --local user.name "GitHub Action"
-      #     git add social_media/
-      #     git add posting_results.json
-      #     git commit -m "Update posting results [skip ci]" || echo "No changes to commit"
-      #     git push
+            # Commit and push to the branch
+            git commit -m "Update posting results" || echo "No changes to commit"
+            git push origin $BRANCH_NAME || echo "Cannot push to branch, it may be protected"
+          else
+            echo "Skipping commit as branch could not be checked out"
+          fi
 
       - name: Add comment to PR
-        if: github.event_name == 'pull_request' && steps.check-content.outputs.has_content == 'true'
+        if: steps.extract_branch.outputs.is_merge_commit == 'true' && steps.check-content.outputs.has_content == 'true'
         uses: peter-evans/create-or-update-comment@v2
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.extract_branch.outputs.pr_number }}
           token: ${{ secrets.GH_PAT }}
           body: |
             ## Social Media Content Published ✅
 
             The social media content from this PR has been published to the following platforms:
 
-            - X (Twitter)
+            ${{ steps.extract_platforms.outputs.formatted_list }}
 
             Check the workflow run for detailed results.

@@ -81,8 +81,9 @@ jobs:
             # If page name has date prefix (YYYY-MM-DD-), remove it
             PAGE_NAME=$(echo "$PAGE_NAME" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-//')
             
-            # Create branch name in the format {page_name}_social_media
-            BRANCH_NAME="${PAGE_NAME}_social_media"
+            # Create branch name in the format {page_name}_{date}_social_media
+            TODAY=$(date +'%Y%m%d')
+            BRANCH_NAME="${PAGE_NAME}_${TODAY}_social_media"
             
             echo "Using page: $PAGE -> Branch: $BRANCH_NAME"
             echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
