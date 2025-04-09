@@ -97,35 +97,35 @@ def get_added_files_from_pr():
     
     return truly_new_files
 
-def filter_pages(files, pages_dir="_pages"):
+def filter_posts(files, posts_dir="_posts"):
     """
-    Filter files to only include pages
+    Filter files to only include posts
     
     Args:
         files: List of files
-        pages_dir: Directory containing pages
+        posts_dir: Directory containing posts
     
     Returns:
         list: List of page files
     """
-    # Pattern to match page files (e.g., _pages/YYYY-MM-DD-title.md)
-    page_pattern = re.compile(f"^{pages_dir}/.*\\.md$")
+    # Pattern to match page files (e.g., _posts/YYYY-MM-DD-title.md)
+    page_pattern = re.compile(f"^{posts_dir}/.*\\.md$")
     
     # Filter files that match the pattern
     return [f for f in files if page_pattern.match(f)]
 
-def detect_new_pages(base_ref=None, head_ref=None, pages_dir="_pages", pr_mode=False):
+def detect_new_posts(base_ref=None, head_ref=None, posts_dir="_posts", pr_mode=False):
     """
-    Detect new pages between two Git references or in a PR
+    Detect new posts between two Git references or in a PR
     
     Args:
         base_ref: Base Git reference (default: previous commit)
         head_ref: Head Git reference (default: current commit)
-        pages_dir: Directory containing pages
+        posts_dir: Directory containing posts
         pr_mode: Whether to use PR mode (default: False)
     
     Returns:
-        list: List of new pages
+        list: List of new posts
     """
     # Get added files based on mode
     if pr_mode:
@@ -135,21 +135,21 @@ def detect_new_pages(base_ref=None, head_ref=None, pages_dir="_pages", pr_mode=F
         base_ref, head_ref = get_git_references(base_ref, head_ref)
         added_files = get_added_files_from_git(base_ref, head_ref)
     
-    # Filter to only include pages
-    new_pages = filter_pages(added_files, pages_dir)
+    # Filter to only include posts
+    new_posts = filter_posts(added_files, posts_dir)
     
-    if new_pages:
-        print(f"Found {len(new_pages)} new pages")
+    if new_posts:
+        print(f"Found {len(new_posts)} new posts")
     else:
-        print("No new pages detected")
+        print("No new posts detected")
     
-    return new_pages
+    return new_posts
 
 if __name__ == "__main__":
     # Parse command line arguments
     base_ref = None
     head_ref = None
-    pages_dir = "_pages"
+    posts_dir = "_posts"
     pr_mode = False
     
     # Check for --pr-mode flag
@@ -162,26 +162,26 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         head_ref = sys.argv[2]
     if len(sys.argv) > 3:
-        pages_dir = sys.argv[3]
+        posts_dir = sys.argv[3]
     
-    # Detect new pages
-    new_pages = detect_new_pages(base_ref, head_ref, pages_dir, pr_mode)
+    # Detect new posts
+    new_posts = detect_new_posts(base_ref, head_ref, posts_dir, pr_mode)
     
-    # Print new pages
-    if new_pages:
-        print("New pages detected:")
-        for page in new_pages:
+    # Print new posts
+    if new_posts:
+        print("New posts detected:")
+        for page in new_posts:
             print(page)
         
         # Output for GitHub Actions if GITHUB_OUTPUT is set
         if 'GITHUB_OUTPUT' in os.environ:
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write("new_pages<<EOF\n")
-                f.write("\n".join(new_pages) + "\n")
+                f.write("new_posts<<EOF\n")
+                f.write("\n".join(new_posts) + "\n")
                 f.write("EOF\n")
     else:
-        print("No new pages detected")
+        print("No new posts detected")
         if 'GITHUB_OUTPUT' in os.environ:
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write("new_pages<<EOF\n")
+                f.write("new_posts<<EOF\n")
                 f.write("EOF\n")

@@ -7,7 +7,7 @@ on:
       - main
       - master
     paths:
-      - "_pages/**/*.md"
+      - "_posts/**/*.md"
       - "social_media/**"
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Detect new and updated pages
+      - name: Detect new and updated posts
         id: detect
         run: |
           # Get the before and after commit SHAs
@@ -48,18 +48,18 @@ jobs:
           echo "Comparing commits $BEFORE_SHA and $AFTER_SHA"
 
           # Get all changed files between the commits
-          CHANGED_FILES=$(git diff --name-status $BEFORE_SHA $AFTER_SHA | grep "^[AM]" | awk '{print $2}' | grep "^_pages/.*\.md$" || echo "")
+          CHANGED_FILES=$(git diff --name-status $BEFORE_SHA $AFTER_SHA | grep "^[AM]" | awk '{print $2}' | grep "^_posts/.*\.md$" || echo "")
 
-          # Output the changed pages
+          # Output the changed posts
           if [ -n "$CHANGED_FILES" ]; then
-            echo "Found changed pages:"
+            echo "Found changed posts:"
             echo "$CHANGED_FILES"
           else
-            echo "No changed pages detected"
+            echo "No changed posts detected"
           fi
 
           # Set the output variable
-          echo "changed_pages<<EOF" >> $GITHUB_OUTPUT
+          echo "changed_posts<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
@@ -67,13 +67,13 @@ jobs:
         id: branch
         run: |
           # Process the first changed page to generate branch name
-          if [ -n "${{ steps.detect.outputs.changed_pages }}" ]; then
-            IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.changed_pages }}"
+          if [ -n "${{ steps.detect.outputs.changed_posts }}" ]; then
+            IFS=',' read -ra POSTS <<< "${{ steps.detect.outputs.changed_posts }}"
             # Get the first page
-            PAGE="${PAGES[0]}"
+            PAGE="${POSTS[0]}"
             
             # Extract page name from path
-            # Remove _pages/ prefix and .md suffix
+            # Remove _posts/ prefix and .md suffix
             PAGE_NAME=$(basename "$PAGE" .md)
             # If page name has date prefix (YYYY-MM-DD-), remove it
             PAGE_NAME=$(echo "$PAGE_NAME" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-//')
@@ -86,12 +86,12 @@ jobs:
             echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
           else
             BRANCH_NAME="$(date +'%Y-%m-%d')_social_media"
-            echo "No pages detected, using fallback branch name: $BRANCH_NAME"
+            echo "No posts detected, using fallback branch name: $BRANCH_NAME"
             echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
           fi
 
       - name: Create new branch
-        if: steps.detect.outputs.changed_pages != ''
+        if: steps.detect.outputs.changed_posts != ''
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
@@ -100,7 +100,7 @@ jobs:
           git checkout -b ${{ steps.branch.outputs.branch_name }}
 
       - name: Extract social media content
-        if: steps.detect.outputs.changed_pages != ''
+        if: steps.detect.outputs.changed_posts != ''
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -111,8 +111,8 @@ jobs:
           fi
 
           # Process each changed page
-          IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.changed_pages }}"
-          for page in "${PAGES[@]}"; do
+          IFS=',' read -ra POSTS <<< "${{ steps.detect.outputs.changed_posts }}"
+          for page in "${POSTS[@]}"; do
             echo "Processing page: $page"
             python scripts/extract_social_media_content.py "$page" "X"
             python scripts/extract_social_media_content.py "$page"
@@ -120,7 +120,7 @@ jobs:
 
       - name: Check for changes
         id: check_changes
-        if: steps.detect.outputs.changed_pages != ''
+        if: steps.detect.outputs.changed_posts != ''
         run: |
           git add social_media/
           # Check if there are any changes to commit
@@ -133,29 +133,29 @@ jobs:
           fi
 
       - name: Commit changes
-        if: steps.detect.outputs.changed_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.detect.outputs.changed_posts != '' && steps.check_changes.outputs.has_changes == 'true'
         run: |
-          git commit -m "Add social media content for new and updated pages"
+          git commit -m "Add social media content for new and updated posts"
 
       - name: Push branch
-        if: steps.detect.outputs.changed_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.detect.outputs.changed_posts != '' && steps.check_changes.outputs.has_changes == 'true'
         run: |
           # Use a different approach for authentication
           git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
           git push origin ${{ steps.branch.outputs.branch_name }}
 
       - name: Create Pull Request
-        if: steps.detect.outputs.changed_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.detect.outputs.changed_posts != '' && steps.check_changes.outputs.has_changes == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           # Create pull request using GitHub CLI instead of the action
           # This avoids the issue with the action trying to push the branch again
           gh pr create \
-            --title "Add social media content for new and updated pages" \
-            --body "This PR adds social media content for the following new or updated pages:
+            --title "Add social media content for new and updated posts" \
+            --body "This PR adds social media content for the following new or updated posts:
 
-            ${{ steps.detect.outputs.changed_pages }}
+            ${{ steps.detect.outputs.changed_posts }}
 
             The content will be published to social media platforms when this PR is merged." \
             --base ${{ github.ref_name }} \

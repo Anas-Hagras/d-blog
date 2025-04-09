@@ -24,7 +24,7 @@ A robust system that automatically generates and publishes social media content 
 
 This project automates the process of generating and publishing social media content for blog posts. When new blog posts are added to your repository, the system automatically:
 
-1. 🔍 Detects new pages
+1. 🔍 Detects new posts
 2. ✍️ Generates tailored social media content for each platform
 3. 🔄 Creates a pull request with the generated content
 4. 🚀 After merging, publishes the content to configured social media platforms
@@ -35,7 +35,7 @@ The system operates in a two-step workflow:
 
 1. **Content Generation** 📝:
 
-   - When a new page is added to the `_pages` directory (either from a push to main or a PR)
+   - When a new page is added to the `_posts` directory (either from a push to main or a PR)
    - The first GitHub Action is triggered
    - It generates social media content using AI
    - Creates a new PR containing the generated content
@@ -118,7 +118,7 @@ X_ACCESS_SECRET=your_twitter_access_secret
 
 3. **Configure GitHub Actions**:
    - Ensure GitHub Actions are enabled for your repository
-   - The workflows will be automatically triggered when new pages are added
+   - The workflows will be automatically triggered when new posts are added
 
 ## 📝 Usage
 
@@ -223,7 +223,7 @@ To add support for a new social media platform:
 
 Current limitations of the system:
 
-- **Supported Operations**: The system currently only supports adding new pages. Modifying or deleting existing pages is not supported yet.
+- **Supported Operations**: The system currently only supports adding new posts. Modifying or deleting existing posts is not supported yet.
 
 > **Note about supported operations** 📌: modifying the content of the page triggers a new extract section media actions but it's overriding the content in the social media
 
@@ -234,7 +234,7 @@ Current limitations of the system:
 
 ## 📁 Scripts Directory Overview
 
-- `detect_new_pages.py`: Detects new pages added to the repository
+- `detect_new_posts.py`: Detects new posts added to the repository
 - `extract_social_media_content.py`: Generates social media content using OpenAI
 - `post_social_media.py`: Posts content to social media platforms
 - `posting/`: Module containing platform implementations
@@ -261,7 +261,7 @@ To set up the project for development:
 
    - Add the required secrets to your repository settings
 
-4. **Start adding new pages**:
-   - Add new markdown files to the `_pages` directory
+4. **Start adding new posts**:
+   - Add new markdown files to the `_posts` directory
    - Commit and push to main or create a PR
    - The workflow will automatically generate content (but not publish until the PR from the first action is merged into main)
