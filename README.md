@@ -96,10 +96,10 @@ X_ACCESS_SECRET=your_twitter_access_secret
    - Navigate to Settings > Secrets and variables > Actions
    - Add the following repository secrets:
      - `OPENAI_API_KEY`
-     - `X_API_KEY`
-     - `X_API_SECRET`
-     - `X_ACCESS_TOKEN`
-     - `X_ACCESS_SECRET`
+     - `TWITTER_API_KEY`
+     - `TWITTER_API_SECRET`
+     - `TWITTER_ACCESS_TOKEN`
+     - `TWITTER_ACCESS_SECRET`
      - `GH_PAT` (GitHub Personal Access Token)
 
 2. **Creating a GitHub Personal Access Token (GH_PAT)**:

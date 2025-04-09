@@ -39,7 +39,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Detect new pages
+      - name: Detect new and updated pages
         id: detect
         run: |
           # Get the before and after commit SHAs
@@ -47,31 +47,28 @@ jobs:
           AFTER_SHA="${{ github.event.after }}"
           echo "Comparing commits $BEFORE_SHA and $AFTER_SHA"
 
-          # Run the script with commit range to detect only newly added files
-          python scripts/detect_new_pages.py "$BEFORE_SHA" "$AFTER_SHA"
+          # Get all changed files between the commits
+          CHANGED_FILES=$(git diff --name-status $BEFORE_SHA $AFTER_SHA | grep "^[AM]" | awk '{print $2}' | grep "^_pages/.*\.md$" || echo "")
 
-          # Capture the output for new pages (only _pages/*.md files)
-          NEW_PAGES=$(python scripts/detect_new_pages.py "$BEFORE_SHA" "$AFTER_SHA" | grep "^_pages/.*\.md$" || echo "")
-
-          # Output the new pages
-          if [ -n "$NEW_PAGES" ]; then
-            echo "Found new pages:"
-            echo "$NEW_PAGES"
+          # Output the changed pages
+          if [ -n "$CHANGED_FILES" ]; then
+            echo "Found changed pages:"
+            echo "$CHANGED_FILES"
           else
-            echo "No new pages detected"
+            echo "No changed pages detected"
           fi
 
           # Set the output variable
-          echo "new_pages<<EOF" >> $GITHUB_OUTPUT
-          echo "$NEW_PAGES" >> $GITHUB_OUTPUT
+          echo "changed_pages<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_FILES" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Generate branch name
         id: branch
         run: |
-          # Process the first new page to generate branch name
-          if [ -n "${{ steps.detect.outputs.new_pages }}" ]; then
-            IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.new_pages }}"
+          # Process the first changed page to generate branch name
+          if [ -n "${{ steps.detect.outputs.changed_pages }}" ]; then
+            IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.changed_pages }}"
             # Get the first page
             PAGE="${PAGES[0]}"
             
@@ -94,7 +91,7 @@ jobs:
           fi
 
       - name: Create new branch
-        if: steps.detect.outputs.new_pages != ''
+        if: steps.detect.outputs.changed_pages != ''
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
@@ -103,7 +100,7 @@ jobs:
           git checkout -b ${{ steps.branch.outputs.branch_name }}
 
       - name: Extract social media content
-        if: steps.detect.outputs.new_pages != ''
+        if: steps.detect.outputs.changed_pages != ''
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -113,8 +110,8 @@ jobs:
             exit 1
           fi
 
-          # Process each new page
-          IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.new_pages }}"
+          # Process each changed page
+          IFS=',' read -ra PAGES <<< "${{ steps.detect.outputs.changed_pages }}"
           for page in "${PAGES[@]}"; do
             echo "Processing page: $page"
             python scripts/extract_social_media_content.py "$page" "X"
@@ -123,7 +120,7 @@ jobs:
 
       - name: Check for changes
         id: check_changes
-        if: steps.detect.outputs.new_pages != ''
+        if: steps.detect.outputs.changed_pages != ''
         run: |
           git add social_media/
           # Check if there are any changes to commit
@@ -136,29 +133,29 @@ jobs:
           fi
 
       - name: Commit changes
-        if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.detect.outputs.changed_pages != '' && steps.check_changes.outputs.has_changes == 'true'
         run: |
-          git commit -m "Add social media content for new pages"
+          git commit -m "Add social media content for new and updated pages"
 
       - name: Push branch
-        if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.detect.outputs.changed_pages != '' && steps.check_changes.outputs.has_changes == 'true'
         run: |
           # Use a different approach for authentication
           git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
           git push origin ${{ steps.branch.outputs.branch_name }}
 
       - name: Create Pull Request
-        if: steps.detect.outputs.new_pages != '' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.detect.outputs.changed_pages != '' && steps.check_changes.outputs.has_changes == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           # Create pull request using GitHub CLI instead of the action
           # This avoids the issue with the action trying to push the branch again
           gh pr create \
-            --title "Add social media content for new pages" \
-            --body "This PR adds social media content for the following new pages:
+            --title "Add social media content for new and updated pages" \
+            --body "This PR adds social media content for the following new or updated pages:
 
-            ${{ steps.detect.outputs.new_pages }}
+            ${{ steps.detect.outputs.changed_pages }}
 
             The content will be published to social media platforms when this PR is merged." \
             --base ${{ github.ref_name }} \

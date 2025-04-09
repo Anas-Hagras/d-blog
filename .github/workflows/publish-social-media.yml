@@ -93,10 +93,10 @@ jobs:
       - name: Publish to social media
         if: steps.check-content.outputs.has_content == 'true'
         env:
-          X_API_KEY: ${{ secrets.X_API_KEY }}
-          X_API_SECRET: ${{ secrets.X_API_SECRET }}
-          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
-          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
         run: |
           # Use the page folders directly from the check-new-folders step
           # Handle case where there are no folders (should not happen due to if condition above)
