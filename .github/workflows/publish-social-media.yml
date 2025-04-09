@@ -1,13 +1,6 @@
 name: Publish Social Media Content
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - master
-      - main
-    paths:
-      - "social_media/**/*.txt"
   push:
     branches:
       - main
@@ -18,11 +11,9 @@ on:
 jobs:
   # Job to publish social media content
   publish-content:
-    # Only run if the PR was merged (not just closed) and the branch name follows the pattern {page_name}_social_media
-    # Or if files were pushed directly to social_media on main branch
+    # Only run on push to main/master branch with changes to social_media files
     if: |
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && endsWith(github.event.pull_request.head.ref, '_social_media')) ||
-      (github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Revert ') && contains(github.event.head_commit.modified, 'social_media/'))
+      github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Revert ')
 
     runs-on: ubuntu-latest
 

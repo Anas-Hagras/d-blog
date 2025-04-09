@@ -13,7 +13,11 @@ on:
 jobs:
   extract-content:
     # Skip if it's a revert commit or from a branch ending with _social_media
-    if: ${{ !startsWith(github.event.head_commit.message, 'Revert ') && !endsWith(github.event.ref, '_social_media') }}
+    # Also skip if the commit message contains "Merge pull request" and the branch name ends with _social_media
+    if: |
+      !startsWith(github.event.head_commit.message, 'Revert ') && 
+      !endsWith(github.event.ref, '_social_media') &&
+      !(contains(github.event.head_commit.message, 'Merge pull request') && contains(github.event.head_commit.message, '_social_media'))
     runs-on: ubuntu-latest
     permissions:
       contents: write
