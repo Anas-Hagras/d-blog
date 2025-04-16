@@ -68,44 +68,39 @@ jobs:
       fail-fast: false
 
     steps:
-      # Check if the post is in the deleted_posts list
-      - name: Check if post is deleted
-        id: check_deleted
-        run: |
-          # Get the deleted posts as a JSON array
-          DELETED_POSTS='${{ needs.detect-changes.outputs.deleted_posts }}'
-
-          # Check if the current post is in the deleted posts array
-          if echo "$DELETED_POSTS" | grep -q "${{ matrix.post }}"; then
-            echo "Post ${{ matrix.post }} is deleted, skipping extraction"
-            echo "is_deleted=true" >> $GITHUB_OUTPUT
-          else
-            echo "Post ${{ matrix.post }} is not deleted, proceeding with extraction"
-            echo "is_deleted=false" >> $GITHUB_OUTPUT
-          fi
-
-      # Skip the rest of the steps if the post is deleted
+      # Check if the post exists before proceeding
       - name: Checkout repository
-        if: steps.check_deleted.outputs.is_deleted != 'true'
         uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Full history for branch creation
 
+      # Check if the post file exists
+      - name: Check if post exists
+        id: check_exists
+        run: |
+          if [ -f "${{ matrix.post }}" ]; then
+            echo "Post ${{ matrix.post }} exists, proceeding with extraction"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Post ${{ matrix.post }} does not exist, skipping extraction"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set up Python
-        if: steps.check_deleted.outputs.is_deleted != 'true'
+        if: steps.check_exists.outputs.exists == 'true'
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
 
       - name: Install dependencies
-        if: steps.check_deleted.outputs.is_deleted != 'true'
+        if: steps.check_exists.outputs.exists == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       # First extract the content to get the version
       - name: Extract social media content
-        if: steps.check_deleted.outputs.is_deleted != 'true'
+        if: steps.check_exists.outputs.exists == 'true'
         id: extract
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -131,7 +126,7 @@ jobs:
           echo "version=v$VERSION" >> $GITHUB_OUTPUT
 
       - name: Generate branch name
-        if: steps.check_deleted.outputs.is_deleted != 'true'
+        if: steps.check_exists.outputs.exists == 'true'
         id: branch
         run: |
           # Extract page name from path
@@ -151,7 +146,7 @@ jobs:
           echo "page_name=$PAGE_NAME" >> $GITHUB_OUTPUT
 
       - name: Check if branch exists
-        if: steps.check_deleted.outputs.is_deleted != 'true'
+        if: steps.check_exists.outputs.exists == 'true'
         id: check_branch
         run: |
           # Check if branch already exists
@@ -175,7 +170,7 @@ jobs:
           fi
 
       - name: Create new branch
-        if: steps.check_deleted.outputs.is_deleted != 'true'
+        if: steps.check_exists.outputs.exists == 'true'
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
@@ -185,7 +180,7 @@ jobs:
 
       # Check for changes after extraction
       - name: Check for changes
-        if: steps.check_deleted.outputs.is_deleted != 'true'
+        if: steps.check_exists.outputs.exists == 'true'
         id: check_changes
         run: |
           git add social_media/
@@ -199,21 +194,21 @@ jobs:
           fi
 
       - name: Commit changes
-        if: steps.check_deleted.outputs.is_deleted != 'true' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.check_exists.outputs.exists == 'true' && steps.check_changes.outputs.has_changes == 'true'
         run: |
           # Get current date
           TODAY=$(date +'%Y-%m-%d')
           git commit -m "${{ steps.branch.outputs.page_name }} social media content ${{ steps.extract.outputs.version }} $TODAY"
 
       - name: Push branch
-        if: steps.check_deleted.outputs.is_deleted != 'true' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.check_exists.outputs.exists == 'true' && steps.check_changes.outputs.has_changes == 'true'
         run: |
           # Use a different approach for authentication
           git config --global url."https://${{ secrets.GH_PAT }}@github.com/".insteadOf "https://github.com/"
           git push origin ${{ steps.check_branch.outputs.unique_branch }}
 
       - name: Create Pull Request
-        if: steps.check_deleted.outputs.is_deleted != 'true' && steps.check_changes.outputs.has_changes == 'true'
+        if: steps.check_exists.outputs.exists == 'true' && steps.check_changes.outputs.has_changes == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
