@@ -298,7 +298,7 @@ The system handles different types of file changes:
 - **Renamed Posts**: Treated as new posts with fresh content
 - **Deleted Posts**: Skipped in the content generation process
 - **Invalid Characters**: Post names with invalid Git branch characters (spaces, special characters) are automatically sanitized for branch names
-- **Folder Names with Spaces**: The posting script properly handles folder names containing spaces when publishing content
+- **Folder Names with Spaces**: Both the posting script and publishing workflow properly handle folder names containing spaces
 
 ## 🔧 Branch Name Handling
 

@@ -59,8 +59,9 @@ jobs:
             echo "Added files in social_media directory:"
             echo "$ADDED_FILES"
             
-            # Extract the page folders (social_media/{page})
-            PAGE_FOLDERS=$(echo "$ADDED_FILES" | grep -o "social_media/[^/]*" | sort -u || true)
+            # Extract the page folders (social_media/{page}) - handle spaces in folder names
+            # Use awk to extract the second field after splitting by '/' and then reconstruct the path
+            PAGE_FOLDERS=$(echo "$ADDED_FILES" | awk -F '/' '{print "social_media/"$2}' | sort -u || true)
             
             if [[ -n "$PAGE_FOLDERS" ]]; then
               echo "New social_media page folders detected:"

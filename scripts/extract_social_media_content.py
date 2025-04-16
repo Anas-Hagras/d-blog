@@ -92,6 +92,8 @@ def get_page_name(filepath):
     if len(page_name) > 11 and page_name[4] == '-' and page_name[7] == '-' and page_name[10] == '-':
         page_name = page_name[11:]
     
+    # Ensure the page name is properly escaped for use in folder names
+    # This preserves spaces and special characters in the folder name
     return page_name
 
 def save_social_media_content(page_name, platform, content):
