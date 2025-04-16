@@ -163,7 +163,9 @@ jobs:
       - name: Commit changes
         if: steps.check_changes.outputs.has_changes == 'true'
         run: |
-          git commit -m "Add social media content for ${{ steps.branch.outputs.page_name }}"
+          # Get current date
+          TODAY=$(date +'%Y-%m-%d')
+          git commit -m "${{ steps.branch.outputs.page_name }} social media content $TODAY"
 
       - name: Push branch
         if: steps.check_changes.outputs.has_changes == 'true'
@@ -177,9 +179,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
+          # Get current date
+          TODAY=$(date +'%Y-%m-%d')
+
           # Create pull request using GitHub CLI
           gh pr create \
-            --title "Add social media content for ${{ steps.branch.outputs.page_name }}" \
+            --title "${{ steps.branch.outputs.page_name }} social media content $TODAY" \
             --body "This PR adds social media content for the post:
 
             ${{ matrix.post }}
