@@ -257,36 +257,27 @@ if __name__ == "__main__":
         
         # Output for GitHub Actions if GITHUB_OUTPUT is set
         if 'GITHUB_OUTPUT' in os.environ:
+            import json
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                # Output new posts
-                f.write("new_posts<<EOF\n")
-                f.write("\n".join(changed_posts["added"]) + "\n")
-                f.write("EOF\n")
+                # Output new posts as JSON array
+                f.write(f"new_posts={json.dumps(changed_posts['added'])}\n")
                 
-                # Output modified posts
-                f.write("modified_posts<<EOF\n")
-                f.write("\n".join(changed_posts["modified"]) + "\n")
-                f.write("EOF\n")
+                # Output modified posts as JSON array
+                f.write(f"modified_posts={json.dumps(changed_posts['modified'])}\n")
                 
-                # Output deleted posts
-                f.write("deleted_posts<<EOF\n")
-                f.write("\n".join(changed_posts["deleted"]) + "\n")
-                f.write("EOF\n")
+                # Output deleted posts as JSON array
+                f.write(f"deleted_posts={json.dumps(changed_posts['deleted'])}\n")
                 
-                # Output all changed posts
+                # Output all changed posts as JSON array
                 all_changed = changed_posts["added"] + changed_posts["modified"] + changed_posts["deleted"]
-                f.write("changed_posts<<EOF\n")
-                f.write("\n".join(all_changed) + "\n")
-                f.write("EOF\n")
+                f.write(f"changed_posts={json.dumps(all_changed)}\n")
     else:
         print("No changed posts detected")
         if 'GITHUB_OUTPUT' in os.environ:
+            import json
             with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
-                f.write("new_posts<<EOF\n")
-                f.write("EOF\n")
-                f.write("modified_posts<<EOF\n")
-                f.write("EOF\n")
-                f.write("deleted_posts<<EOF\n")
-                f.write("EOF\n")
-                f.write("changed_posts<<EOF\n")
-                f.write("EOF\n")
+                # Output empty arrays for all outputs
+                f.write(f"new_posts={json.dumps([])}\n")
+                f.write(f"modified_posts={json.dumps([])}\n")
+                f.write(f"deleted_posts={json.dumps([])}\n")
+                f.write(f"changed_posts={json.dumps([])}\n")
