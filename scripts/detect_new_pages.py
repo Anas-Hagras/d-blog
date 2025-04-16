@@ -72,6 +72,17 @@ def get_changed_files_from_git(base_ref, head_ref):
             continue
             
         status = parts[0]
+        
+        if status.startswith("R"):  # Renamed
+            # For renamed files, parts[1] is the old path and parts[2] is the new path
+            if len(parts) >= 3:
+                old_path = parts[1]
+                new_path = parts[2]
+                # Treat renamed files as a combination of deleted and added
+                deleted_files.append(old_path)
+                added_files.append(new_path)
+            continue
+            
         file_path = parts[1]
         
         if status.startswith("A"):  # Added
@@ -80,7 +91,6 @@ def get_changed_files_from_git(base_ref, head_ref):
             modified_files.append(file_path)
         elif status.startswith("D"):  # Deleted
             deleted_files.append(file_path)
-        # Note: We're ignoring renamed (R) files for simplicity
     
     return {
         "added": added_files,
@@ -107,7 +117,7 @@ def get_changed_files_from_pr():
         return {"added": [], "modified": [], "deleted": []}
     
     # Get all files in the PR
-    command = f"gh pr view {pr_number} --json files --jq '.files[] | [.path, .additions, .deletions] | @tsv'"
+    command = f"gh pr view {pr_number} --json files --jq '.files[] | [.path, .additions, .deletions, .status] | @tsv'"
     output = run_command(command)
     
     if not output:
@@ -129,6 +139,13 @@ def get_changed_files_from_pr():
         file_path = parts[0]
         additions = int(parts[1])
         deletions = int(parts[2])
+        status = parts[3] if len(parts) > 3 else ""
+        
+        # Handle renamed files (if status is available)
+        if status == "renamed":
+            # For renamed files, treat them as new files
+            added_files.append(file_path)
+            continue
         
         # Check if the file existed in the base commit
         check_command = f"git cat-file -e {base_sha}:{file_path} 2>/dev/null || echo 'not_exists'"
