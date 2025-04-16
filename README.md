@@ -297,3 +297,13 @@ The system handles different types of file changes:
 - **Edited Posts**: Creates a new version of the social media content
 - **Renamed Posts**: Treated as new posts with fresh content
 - **Deleted Posts**: Skipped in the content generation process
+- **Invalid Characters**: Post names with invalid Git branch characters (spaces, special characters) are automatically sanitized for branch names
+
+## 🔧 Branch Name Handling
+
+The system includes several features for handling branch names:
+
+- **Sanitization**: Automatically replaces invalid Git branch characters (spaces, ~, ^, :, ?, \*, [, @{, \) with underscores
+- **Versioning**: Includes version information in branch names (`{page_name}_{version}_{date}_social_media`)
+- **Conflict Resolution**: Handles cases when a branch already exists by adding a timestamp
+- **Suffix Preservation**: Always maintains the required `_social_media` suffix for compatibility with other workflows

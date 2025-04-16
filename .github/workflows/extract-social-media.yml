@@ -137,9 +137,24 @@ jobs:
           # If page name has date prefix (YYYY-MM-DD-), remove it
           PAGE_NAME=$(echo "$PAGE_NAME" | sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}-//')
 
+          # Sanitize page name for branch name (replace invalid characters with underscores)
+          # Git branch names cannot contain:
+          # - Space
+          # - Tilde ~
+          # - Caret ^
+          # - Colon :
+          # - Question mark ?
+          # - Asterisk *
+          # - Open bracket [
+          # - At sign @{
+          # - Backslash \
+          # - Control characters (ASCII 0-31)
+          # - DEL character (ASCII 127)
+          SANITIZED_PAGE_NAME=$(echo "$PAGE_NAME" | sed -E 's/[ ~^:?*\[@{\\]/_/g')
+
           # Create branch name in the format {page_name}_{version}_{date}_social_media
           TODAY=$(date +'%Y-%m-%d')
-          BRANCH_NAME="${PAGE_NAME}_${{ steps.extract.outputs.version }}_${TODAY}_social_media"
+          BRANCH_NAME="${SANITIZED_PAGE_NAME}_${{ steps.extract.outputs.version }}_${TODAY}_social_media"
 
           echo "Using page: $PAGE -> Branch: $BRANCH_NAME"
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
