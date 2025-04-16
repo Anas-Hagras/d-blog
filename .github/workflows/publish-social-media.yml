@@ -52,7 +52,8 @@ jobs:
           echo "$DIFF_OUTPUT"
 
           # Find added files (A) in social_media directory, handling case where grep finds no matches
-          ADDED_FILES=$(echo "$DIFF_OUTPUT" | grep "^A" | awk '{print $2}' | grep "^social_media/" || true)
+          # Use a different approach to preserve spaces in filenames
+          ADDED_FILES=$(echo "$DIFF_OUTPUT" | grep "^A" | sed 's/^A[[:space:]]\+//' | grep "^social_media/" || true)
 
           # Check if we found any added files
           if [[ -n "$ADDED_FILES" ]]; then
@@ -60,8 +61,8 @@ jobs:
             echo "$ADDED_FILES"
             
             # Extract the page folders (social_media/{page}) - handle spaces in folder names
-            # Use awk to extract the second field after splitting by '/' and then reconstruct the path
-            PAGE_FOLDERS=$(echo "$ADDED_FILES" | awk -F '/' '{print "social_media/"$2}' | sort -u || true)
+            # Use a more robust approach to preserve the full folder name with spaces
+            PAGE_FOLDERS=$(echo "$ADDED_FILES" | sed -E 's|^(social_media/[^/]+)/.*$|\1|' | sort -u || true)
             
             if [[ -n "$PAGE_FOLDERS" ]]; then
               echo "New social_media page folders detected:"
