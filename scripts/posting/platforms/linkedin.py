@@ -40,19 +40,21 @@ class LinkedInPlatform(SocialMediaPlatform):
             if response.status_code == 200:
                 return response.json().get("sub", "")
             else:
+                error_msg = f"Failed to get user ID: {response.status_code} - {response.text}"
                 self.create_error_result(
                     "LinkedIn",
                     "Unable to get user ID",
-                    response.text
+                    error_msg
                 )
-                return None
+                raise ValueError(error_msg)
         except Exception as e:
+            error_msg = f"Error getting LinkedIn user ID: {str(e)}"
             self.create_error_result(
                 "LinkedIn",
                 "Error getting user ID",
-                str(e)
+                error_msg
             )
-            return None
+            raise ValueError(error_msg)
     
     def find_media_files(self, platform_folder: str) -> List[str]:
         """

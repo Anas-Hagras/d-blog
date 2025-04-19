@@ -182,10 +182,10 @@ jobs:
           # Create a formatted list for failed platforms with error messages
           if [ -n "$FAILED_PLATFORMS" ]; then
             FAILED_LIST=""
-            # Loop through each failed platform and extract its error message
-            jq -r '.[] | select(.status == "error") | [.platform, .error] | @tsv' posting_results.json | while IFS=$'\t' read -r platform error; do
+            # Use process substitution to avoid subshell issues
+            while IFS=$'\t' read -r platform error; do
               FAILED_LIST="$FAILED_LIST- **$platform**: $error\n"
-            done
+            done < <(jq -r '.[] | select(.status == "error") | [.platform, .error] | @tsv' posting_results.json)
             echo "failed_list<<EOF" >> $GITHUB_OUTPUT
             echo -e "$FAILED_LIST" >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT

@@ -44,4 +44,3 @@ Thumbs.db
 
 .env*
 !.env.example
-**/posting_results.json
