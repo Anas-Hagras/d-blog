@@ -16,7 +16,7 @@ class LinkedInPlatform(SocialMediaPlatform):
     def __init__(self):
         super().__init__("LinkedIn")
         self._verify_credentials()
-        self.user_id = self._get_user_id()
+        
     
     def _verify_credentials(self):
         required_creds = ["LINKEDIN_ACCESS_TOKEN"]
@@ -40,9 +40,21 @@ class LinkedInPlatform(SocialMediaPlatform):
             if response.status_code == 200:
                 return response.json().get("sub", "")
             else:
-                raise ValueError(f"Failed to get user ID: {response.status_code} - {response.text}")
+                self.create_error_result(
+                    "LinkedIn",
+                    "Unable to get user ID",
+                    response.status_code,
+                    response.text
+                )
+                return None
         except Exception as e:
-            raise ValueError(f"Error getting LinkedIn user ID: {str(e)}")
+            self.create_error_result(
+                "LinkedIn",
+                "Error getting user ID",
+                str(e),
+                str(e)
+            )
+            return None
     
     def find_media_files(self, platform_folder: str) -> List[str]:
         """
@@ -91,6 +103,7 @@ class LinkedInPlatform(SocialMediaPlatform):
         Returns:
             Dict containing the result of the posting operation
         """
+        self.user_id = self._get_user_id()
         try:
             if not self.user_id:
                 raise ValueError("LinkedIn user ID not available")
