@@ -1,6 +1,6 @@
 import requests 
 
-access_token = "AQVNzUiQb8zQfxWXhfVzGjV__wakCq-YoMe1VCWdKxuhSoNQiHRrWWGvo4O5wt49h0JZqrw6EXS04y0woRv_t8y2e0d9Rbc_6Bu5VEUjtCF_Y-A7IH5I-N-r1BiQRCqk8gL1XslN9dOKwcB77Z61hEALHlOmOOXvdwa81R9KNtQYQz-x1IcRuqvT2LauVXoKy6wUeFhx6ZONmgTgqIuAcCVV6--NkantY-bc7AXTaLXuBZkfJtaHacAOw6PGHG-XgKGGRnNCcXE7xCqHV_881ztcZzl4u2eX-xbIEDNw9uETVbl_uyIMd9V1Dnm0qiRLi6i2_e_F53wEG2MXy8wYtOBcSZMrRg"
+access_token = "aa"
 
 headers = {
     "Authorization": f"Bearer {access_token}",

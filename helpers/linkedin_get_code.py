@@ -2,7 +2,7 @@ import requests
 from urllib.parse import quote
 
 # Replace these with your app's credentials
-CLIENT_ID = "77ry6lekl30di4"
+CLIENT_ID = "aa"
 REDIRECT_URI = "https://localhost"  # Must match your app's redirect URI
 
 SCOPES = "openid profile w_member_social"
