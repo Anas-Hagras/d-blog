@@ -43,7 +43,6 @@ class LinkedInPlatform(SocialMediaPlatform):
                 self.create_error_result(
                     "LinkedIn",
                     "Unable to get user ID",
-                    response.status_code,
                     response.text
                 )
                 return None
@@ -51,7 +50,6 @@ class LinkedInPlatform(SocialMediaPlatform):
             self.create_error_result(
                 "LinkedIn",
                 "Error getting user ID",
-                str(e),
                 str(e)
             )
             return None
