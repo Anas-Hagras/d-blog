@@ -43,4 +43,5 @@ Thumbs.db
 # Project specific
 
 .env*
-!.env.example 
+!.env.example
+**/posting_results.json
