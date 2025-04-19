@@ -1,20 +1,20 @@
 [
   {
-    "platform": "LinkedIn",
-    "page_name": "personal_profile",
-    "id": "urn:li:share:7319259741170376704",
-    "text": "In today's fast-paced digital landscape, adaptability is more than a skill\u2014it's a necessity. Embracing change not only empowers personal growth but also drives organizational success. A key insight? Cultivating a culture of continuous learning can transform challenges into opportunities. \na\nHow has adaptability shaped your career journey? Share your experiences and let's explore how we can all thrive in the face of change.",
-    "created_at": "2025-04-19 07:25:07",
-    "url": "https://www.linkedin.com/feed/update/urn:li:share:7319259741170376704",
+    "platform": "X",
+    "page_name": "yet_another_linked",
+    "id": "1913503733800951826",
+    "text": "Diving into the world of LinkedIn can feel like an adventure! \ud83e\udded Ever felt like a small fish in a big pond? Let's explore how to make waves. \ud83c\udf0a What's your go-to strategy? #LinkedInTips #Networking",
+    "created_at": "2025-04-19 08:03:36",
+    "url": "https://x.com/AnasHagras34607/status/1913503733800951826",
     "status": "success"
   },
   {
-    "platform": "X",
-    "page_name": "not-the-end-of-lawyers",
-    "id": "1913494075124174854",
-    "text": "This is the X content !",
-    "created_at": "2025-04-19 07:25:13",
-    "url": "https://x.com/AnasHagras34607/status/1913494075124174854",
-    "status": "success"
+    "platform": "LinkedIn",
+    "page_name": "yet_another_linked",
+    "id": "",
+    "text": "",
+    "created_at": "2025-04-19 08:03:41",
+    "status": "error",
+    "error": "SocialMediaPlatform.create_error_result() takes 4 positional arguments but 5 were given"
   }
 ]
