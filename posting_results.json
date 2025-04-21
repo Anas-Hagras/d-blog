@@ -1,29 +1,29 @@
 [
   {
+    "platform": "X",
+    "page_name": "2019-06-15-visit-a-tea-shop-to-gift-feedback",
+    "id": "",
+    "text": "\ud83d\udd0d Boost your impact with powerful feedback! \ud83c\udfaf Sharing a simple template & \"A TEA SHOPS\" strength framework to help you uplift those around you. \ud83c\udf1f What's your go-to feedback strategy? \ud83e\udd14 #Leadership #GrowthMindset",
+    "created_at": "2025-04-21 13:15:48",
+    "status": "error",
+    "error": "Twitter API Error: 401 Unauthorized\nUnauthorized"
+  },
+  {
     "platform": "LinkedIn",
-    "page_name": "personal_profile",
-    "id": "urn:li:share:7320072168568975360",
-    "text": "Feedback is a powerful tool for growth, both professionally and personally. When we invest time in enhancing others' strengths, we inadvertently elevate ourselves. Drawing from consulting experience, I've found a simple yet effective feedback template: observe, express, suggest. This approach ensures feedback is factual, empathetic, and actionable.\n\nConsider the \"A Tea Shops\" framework for identifying strengths: Athlete, Teacher, Engineer, Artist, Scientist, Human, Owner, Pioneer, and Student. Each persona embodies traits that can guide our feedback and development.\n\nHow do you ensure your feedback is both constructive and empowering? Share your thoughts or experiences below.",
-    "created_at": "2025-04-21 13:13:26",
-    "url": "https://www.linkedin.com/feed/update/urn:li:share:7320072168568975360",
-    "status": "success"
+    "page_name": "2019-06-15-visit-a-tea-shop-to-gift-feedback",
+    "id": "",
+    "text": "",
+    "created_at": "2025-04-21 13:15:53",
+    "status": "error",
+    "error": "Error getting LinkedIn user ID: Failed to get user ID: 401 - {\"status\":401,\"serviceErrorCode\":65600,\"code\":\"INVALID_ACCESS_TOKEN\",\"message\":\"Invalid access token\"}"
   },
   {
     "platform": "Resend",
     "page_name": "2019-06-15-visit-a-tea-shop-to-gift-feedback",
     "id": "batch-2019-06-15-visit-a-tea-shop-to-gift-feedback",
-    "text": "Hello,\n\nGiving good feedback is like planting seeds for growth, both in your professional and personal life. Imagine everyone around you becoming stronger and more capable\u2014how wonderful would that be? Here's how you can make it happen with two simple tools: a feedback template and a framework of desirable traits.\n\nHere are five guiding principles for good feedback:\n\n1. Feedback can be given to anyone: colleagues, superiors, family, and more.\n2. Prepare ahead of time and deliver feedback verbally first.\n3. Make it strength-based, fact-based, and empathetic.\n4. Consider feedback as a gift, an opportunity for improvement.\n5. Provide feedback promptly when urgent, or schedule it regularly.\n\n**The Feedback Template:**\n\n1. I observed *___*.\n2. It made me feel *___*.\n3. One idea to improve is *___*.\n\nThis template helps keep your feedback clear and factual. \n\n**The \"A Tea Shops\" Framework:**\n\nWhen identifying strengths, think of these nine personas:\n\n- *Athlete*: Values health and balance\n- *Teacher*: Empathically mentors others\n- *Engineer*: Finds pragmatic solutions\n- *Artist*: Applies creative thinking\n- *Scientist*: Conducts unbiased experiments\n- *Human*: Embraces authenticity\n- *Owner*: Holds accountability\n- *Pioneer*: Acts with courage\n- *Student*: Welcomes growth\n\n**Example of Applying Feedback:**\n\nI once gave feedback to a superior using this structure: \n\n\"I observed that you presented only the most optimistic scenarios. This made me feel concerned about selection bias. One idea to improve is to include all scenarios, noting the optimistic ones specifically.\"\n\nBy using this method, you encourage transparency and trust.\n\nTake the first step to enriching your relationships and environments with these tools, and see the positive impact unfold. \n\nFeel free to share your thoughts and feedback with us!\n\nWarm regards, \n\n[Your Name]",
-    "created_at": "2025-04-21 13:13:33",
+    "text": "Giving feedback, whether at work or in personal relationships, can be a powerful tool for growth. When those around us thrive, we all benefit. Here\u2019s a quick guide to help you master this skill with ease.\n\n- **Five Key Principles**: Feedback isn't just for subordinates; it can be shared with anyone. Prepare ahead, be empathetic and fact-based, and remember feedback is a gift. Deliver it promptly or schedule it regularly.\n\n- **Feedback Template**: Jot down your thoughts using this simple framework:\n  1. I observed *[specific behavior]*.\n  2. It made me feel *[your reaction]*.\n  3. One idea to improve is *[suggestion]*.\n\n- **Strength Framework**: Use the \"a tea shops\" acronym to think about strengths:\n  - *A*thlete: Prioritizes health and balance\n  - *T*eacher: Mentors and shares knowledge\n  - *E*ngineer: Provides practical solutions\n  - *A*rtist: Embraces creativity\n  - *S*cientist: Bases decisions on data\n  - *H*uman: Shows authentic personality\n  - *O*wner: Takes accountability\n  - *P*ioneer: Leads with courage\n  - *S*tudent: Welcomes growth\n\n- **Real-Life Example**: I once reminded a superior to be more like a scientist by addressing selection bias and ensuring balanced scenario presentations.\n\nRemember, feedback is about empowering others and fostering a culture of continuous improvement. Try using these tools and watch the positive impact unfold!",
+    "created_at": "2025-04-21 13:15:54",
     "url": "Sent to 1 subscribers",
     "status": "success"
-  },
-  {
-    "platform": "X",
-    "page_name": "2019-06-15-visit-a-tea-shop-to-gift-feedback",
-    "id": "",
-    "text": "Unlock the power of feedback! \ud83d\udddd\ufe0f Strengthen your team & relationships with a simple template and the \"a tea shops\" framework. Ready to turn feedback into growth? \ud83c\udf31 How do you give feedback? #GrowthMindset",
-    "created_at": "2025-04-21 13:13:38",
-    "status": "error",
-    "error": "Twitter API Error: 403 Forbidden\nYou are not allowed to create a Tweet with duplicate content."
   }
 ]
