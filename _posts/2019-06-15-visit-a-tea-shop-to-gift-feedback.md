@@ -99,3 +99,4 @@ Effectively, I was reminding my boss to be a **scientist**, and I was myself exh
 - Ray Dalio's [Princples](https://amzn.to/2XhS17a) and his [iOS app](https://www.principles.com/principles-in-action/)
 
 Added Content
+x
