@@ -10,6 +10,7 @@ from typing import Dict, List, Any, Optional
 from .platforms import SocialMediaPlatform
 from .platforms.twitter import TwitterPlatform
 from .platforms.linkedin import LinkedInPlatform
+from .platforms.resend import ResendPlatform
 from typing import Union, List
 
 class SocialMediaPoster:
@@ -47,6 +48,7 @@ class SocialMediaPoster:
         supported_platforms = {
             "X": TwitterPlatform,
             "LinkedIn": LinkedInPlatform,
+            "Resend": ResendPlatform,
             # Add more platforms here as they are implemented
         }
         

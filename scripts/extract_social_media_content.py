@@ -88,10 +88,7 @@ def get_page_name(filepath):
     filename = os.path.basename(filepath)
     page_name = os.path.splitext(filename)[0]
     
-    # Remove the date prefix if it exists (YYYY-MM-DD-)
-    if len(page_name) > 11 and page_name[4] == '-' and page_name[7] == '-' and page_name[10] == '-':
-        page_name = page_name[11:]
-    
+    # Keep the date prefix - don't remove it
     # Ensure the page name is properly escaped for use in folder names
     # This preserves spaces and special characters in the folder name
     return page_name
