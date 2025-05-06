@@ -13,7 +13,7 @@ HELLO Giving good feedback to people around you (both at work and in your privat
 <source src="/assets/audio/gifting-feedback.mp3" type="audio/mpeg">
 </audio>
 <button class="btn btn--small" id="video-player-playback-rate-control" style="border-color=none !important;border-collapse: separate !important;">Speed: <span id="current-rate">1</span>x</button></span>
-
+!!
 # How to give and receive feedback
 
 ## Five guiding principles for good feedback
