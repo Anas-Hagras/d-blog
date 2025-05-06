@@ -51,6 +51,15 @@ jobs:
           # Use the refactored script to detect changes
           python scripts/detect_new_pages.py $BEFORE_SHA $AFTER_SHA
 
+  # This job will run when there are no changed posts
+  no-changes:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.changed_posts == ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: No changes detected
+        run: echo "No changed posts detected. Workflow completed successfully."
+
   extract-content:
     needs: detect-changes
     if: needs.detect-changes.outputs.changed_posts != ''

@@ -19,6 +19,7 @@ HELLO Giving good feedback to people around you (both at work and in your privat
 ## Five guiding principles for good feedback
 
 Here's a few of the important points:
+@@@
 
 1. Feedback can be given to anyone (e.g., subordinates, superiors, clients, spouse, parent, children, etc.).
 2. Good feedback is given verbally first, and requires cool-headed preparation ahead of time (e.g., write it down).
