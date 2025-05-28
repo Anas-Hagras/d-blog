@@ -7,6 +7,9 @@ from openai import OpenAI
 # Import the SocialMediaPoster to get available platforms
 from posting import SocialMediaPoster
 
+# Import the ImageGenerator for automatic image generation
+from image_generation import ImageGenerator
+
 # Initialize OpenAI client
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
@@ -127,6 +130,16 @@ def save_social_media_content(page_name, platform, content):
     filepath = os.path.join(version_dir, "content.txt")
     with open(filepath, 'w', encoding='utf-8') as f:
         f.write(content)
+    
+    # Generate image for this version
+    try:
+        image_generator = ImageGenerator()
+        if image_generator.process_social_media_version(version_dir):
+            print(f"✅ Image generated for {platform} v{new_version}")
+        else:
+            print(f"⚠️ Failed to generate image for {platform} v{new_version}")
+    except Exception as e:
+        print(f"⚠️ Error generating image for {platform} v{new_version}: {e}")
     
     return filepath
 
