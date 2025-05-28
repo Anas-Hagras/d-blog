@@ -53,10 +53,10 @@ class TwitterPlatform(SocialMediaPlatform):
 
     def find_media_files(self, platform_folder: str) -> List[str]:
         """
-        Find media files in the platform folder.
+        Find media files in the media folder within the version directory.
         
         Args:
-            platform_folder: Path to the platform folder
+            platform_folder: Path to the platform folder (version directory)
             
         Returns:
             List of media file paths
@@ -70,24 +70,16 @@ class TwitterPlatform(SocialMediaPlatform):
         
         media_files = []
         
-        # Find image files in the current folder
-        for ext in image_extensions:
-            media_files.extend(glob.glob(os.path.join(folder, f"*.{ext}")))
-        
-        # Find video files in the current folder
-        for ext in video_extensions:
-            media_files.extend(glob.glob(os.path.join(folder, f"*.{ext}")))
-        
-        # If we're in a version folder (v1, v2, etc.), also check the parent folder
-        parent_folder = Path(folder).parent
-        if Path(folder).name.startswith('v') and parent_folder.exists():
-            # Find image files in the parent folder
+        # Look for media files in the media/ subfolder within the version directory
+        media_folder = os.path.join(folder, "media")
+        if os.path.exists(media_folder) and os.path.isdir(media_folder):
+            # Find image files in the media folder
             for ext in image_extensions:
-                media_files.extend(glob.glob(os.path.join(parent_folder, f"*.{ext}")))
+                media_files.extend(glob.glob(os.path.join(media_folder, f"*.{ext}")))
             
-            # Find video files in the parent folder
+            # Find video files in the media folder
             for ext in video_extensions:
-                media_files.extend(glob.glob(os.path.join(parent_folder, f"*.{ext}")))
+                media_files.extend(glob.glob(os.path.join(media_folder, f"*.{ext}")))
         
         return media_files
 
