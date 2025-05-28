@@ -7,6 +7,7 @@ import glob
 import json
 import resend
 import markdown
+import base64
 from typing import Dict, Any, List, Optional, Literal
 from pathlib import Path
 from ..platforms import SocialMediaPlatform
@@ -124,10 +125,25 @@ class ResendPlatform(SocialMediaPlatform):
                 try:
                     with open(media_file, "rb") as f:
                         file_content = f.read()
+                        # Encode file content as base64 string
+                        file_content_b64 = base64.b64encode(file_content).decode('utf-8')
                         filename = os.path.basename(media_file)
-                        attachments.append(
-                            {"content": file_content, "filename": filename}
-                        )
+                        
+                        # Determine MIME type based on file extension
+                        file_ext = os.path.splitext(filename)[1].lower()
+                        mime_type_map = {
+                            '.jpg': 'image/jpeg',
+                            '.jpeg': 'image/jpeg',
+                            '.png': 'image/png',
+                            '.gif': 'image/gif'
+                        }
+                        content_type = mime_type_map.get(file_ext, 'application/octet-stream')
+                        
+                        attachments.append({
+                            "content": file_content_b64,
+                            "filename": filename,
+                            "type": content_type
+                        })
                 except Exception as e:
                     print(f"Error reading media file {media_file}: {str(e)}")
 
