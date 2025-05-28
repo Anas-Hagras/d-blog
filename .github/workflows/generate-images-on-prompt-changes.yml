@@ -1,0 +1,228 @@
+name: Generate Images on Prompt Changes
+
+on:
+  push:
+    branches:
+      - "*_social_media"
+    paths:
+      - "social_media/**/media_prompt.txt"
+
+jobs:
+  generate-images:
+    runs-on: ubuntu-latest
+
+    # Only run if the branch ends with _social_media and media_prompt.txt files were modified (not just added)
+    if: endsWith(github.ref_name, '_social_media')
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2 # Need at least 2 commits to detect changes
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Detect modified media_prompt.txt files
+        id: detect-changes
+        run: |
+          echo "Checking for modified media_prompt.txt files..."
+
+          # Get the list of changed files between HEAD~1 and HEAD
+          CHANGED_FILES=$(git diff --name-status HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Filter for modified (M) media_prompt.txt files in social_media directory
+          # We only want modifications (M), not additions (A) or deletions (D)
+          MODIFIED_PROMPTS=$(echo "$CHANGED_FILES" | grep "^M" | grep "social_media.*media_prompt\.txt" | sed 's/^M[[:space:]]\+//' || true)
+
+          if [[ -n "$MODIFIED_PROMPTS" ]]; then
+            echo "Modified media_prompt.txt files detected:"
+            echo "$MODIFIED_PROMPTS"
+            
+            # Extract the version directories that need image regeneration
+            VERSION_DIRS=""
+            while IFS= read -r file; do
+              if [[ -n "$file" ]]; then
+                # Get the directory containing the media_prompt.txt file
+                VERSION_DIR=$(dirname "$file")
+                VERSION_DIRS="$VERSION_DIRS$VERSION_DIR"$'\n'
+              fi
+            done <<< "$MODIFIED_PROMPTS"
+            
+            # Remove empty lines and duplicates
+            VERSION_DIRS=$(echo "$VERSION_DIRS" | grep -v "^$" | sort -u)
+            
+            echo "Version directories to regenerate:"
+            echo "$VERSION_DIRS"
+            
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "version_dirs<<EOF" >> $GITHUB_OUTPUT
+            echo "$VERSION_DIRS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "No modified media_prompt.txt files found"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate images for modified prompts
+        if: steps.detect-changes.outputs.has_changes == 'true'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          # Check if OPENAI_API_KEY is set
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "Error: OPENAI_API_KEY is not set"
+            exit 1
+          fi
+
+          echo "Regenerating images for modified prompts..."
+
+          # Process each version directory
+          SUCCESS_COUNT=0
+          TOTAL_COUNT=0
+          FAILED_DIRS=""
+
+          while IFS= read -r version_dir; do
+            if [[ -n "$version_dir" ]]; then
+              echo "Processing: $version_dir"
+              TOTAL_COUNT=$((TOTAL_COUNT + 1))
+              
+              if python scripts/image_generation.py "$version_dir"; then
+                echo "✓ Successfully regenerated image for $version_dir"
+                SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+              else
+                echo "✗ Failed to regenerate image for $version_dir"
+                FAILED_DIRS="$FAILED_DIRS$version_dir"$'\n'
+              fi
+            fi
+          done <<< "${{ steps.detect-changes.outputs.version_dirs }}"
+
+          echo "Image generation completed: $SUCCESS_COUNT/$TOTAL_COUNT successful"
+
+          # Set outputs for the next step
+          echo "success_count=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
+          echo "total_count=$TOTAL_COUNT" >> $GITHUB_OUTPUT
+          echo "failed_dirs<<EOF" >> $GITHUB_OUTPUT
+          echo "$FAILED_DIRS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Exit with error if any regeneration failed
+          if [[ $SUCCESS_COUNT -ne $TOTAL_COUNT ]]; then
+            echo "Some image regenerations failed"
+            exit 1
+          fi
+
+      - name: Check for generated content
+        if: steps.detect-changes.outputs.has_changes == 'true'
+        id: check-generated
+        run: |
+          # Check if there are any new or modified files to commit
+          git add social_media/
+
+          if git diff --staged --quiet; then
+            echo "No new images generated"
+            echo "has_generated_content=false" >> $GITHUB_OUTPUT
+          else
+            echo "New images generated"
+            echo "has_generated_content=true" >> $GITHUB_OUTPUT
+            
+            # Show what files were generated
+            echo "Generated files:"
+            git diff --staged --name-only
+          fi
+
+      - name: Commit generated images
+        if: steps.detect-changes.outputs.has_changes == 'true' && steps.check-generated.outputs.has_generated_content == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # Commit the generated images and any media history
+          git commit -m "Auto-regenerate images after media_prompt.txt changes
+
+          - Regenerated images for modified prompts
+          - Moved previous images to media_history
+          - Generated by: ${{ github.workflow }} workflow"
+
+      - name: Push changes
+        if: steps.detect-changes.outputs.has_changes == 'true' && steps.check-generated.outputs.has_generated_content == 'true'
+        run: |
+          git push origin ${{ github.ref_name }}
+
+      - name: Add workflow summary
+        if: steps.detect-changes.outputs.has_changes == 'true'
+        run: |
+          echo "## Image Generation Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** Modified media_prompt.txt files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total prompts processed:** ${{ env.total_count || 0 }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Successful regenerations:** ${{ env.success_count || 0 }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Images committed:** ${{ steps.check-generated.outputs.has_generated_content == 'true' && 'Yes' || 'No' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ -n "${{ env.failed_dirs }}" ]]; then
+            echo "### Failed Regenerations" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "${{ env.failed_dirs }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "### Modified Prompts" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.detect-changes.outputs.version_dirs }}" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  # Job to handle cases where no changes are detected
+  no-changes:
+    runs-on: ubuntu-latest
+    if: endsWith(github.ref_name, '_social_media')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Check if this job should run
+        id: should-run
+        run: |
+          # Get the list of changed files
+          CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Check if any media_prompt.txt files were modified
+          MODIFIED_PROMPTS=$(echo "$CHANGED_FILES" | grep "social_media.*media_prompt\.txt" || true)
+
+          if [[ -z "$MODIFIED_PROMPTS" ]]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "No media_prompt.txt files were modified in this commit"
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Log no changes
+        if: steps.should-run.outputs.should_run == 'true'
+        run: |
+          echo "## No Image Generation Needed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** No media_prompt.txt files were modified in this commit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Image generation is only triggered when media_prompt.txt files are **edited** (not just added)." >> $GITHUB_STEP_SUMMARY

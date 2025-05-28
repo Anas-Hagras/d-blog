@@ -19,7 +19,15 @@ class ImageGenerator:
     
     def load_general_prompt(self):
         """Load the general image generation prompt"""
-        prompt_path = Path("prompts/image_generation.txt")
+        prompt_path = Path("prompts/image_generation/common_prompt.txt")
+        if prompt_path.exists():
+            with open(prompt_path, 'r', encoding='utf-8') as f:
+                return f.read()
+        return ""
+    
+    def load_platform_prompt(self, platform):
+        """Load platform-specific image generation prompt"""
+        prompt_path = Path(f"prompts/image_generation/{platform}.txt")
         if prompt_path.exists():
             with open(prompt_path, 'r', encoding='utf-8') as f:
                 return f.read()
@@ -146,11 +154,24 @@ Based on the guidelines provided in the system message, create a detailed media_
         else:
             print(f"Warning: Blog post not found at {blog_post_path}")
         
-        # Load image generation prompt
-        image_generation_prompt = self.load_general_prompt()
+        # Extract platform from path
+        platform = version_path.parts[-2]  # e.g., "Resend", "X", "LinkedIn"
         
-        # Generate media prompt using all three inputs
-        media_prompt = self.generate_media_prompt(social_media_content, full_post_content, image_generation_prompt)
+        if platform in ["Resend","TikTok"]:
+            print(f"Skipping platform {platform} as it is not supported for image generation")
+            return False
+
+        # Load both general and platform-specific prompts
+        general_prompt = self.load_general_prompt()
+        platform_prompt = self.load_platform_prompt(platform)
+        
+        # Combine prompts
+        combined_prompt = general_prompt
+        if platform_prompt:
+            combined_prompt += f"\n\n## Platform-Specific Guidelines for {platform}\n{platform_prompt}"
+        
+        # Generate media prompt using all inputs including platform-specific guidelines
+        media_prompt = self.generate_media_prompt(social_media_content, full_post_content, combined_prompt)
         if not media_prompt:
             return False
         
