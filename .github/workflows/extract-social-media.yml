@@ -240,3 +240,25 @@ jobs:
             The content will be published to social media platforms when this PR is merged." \
             --base ${{ github.ref_name }} \
             --head ${{ steps.check_branch.outputs.unique_branch }}
+
+  # Job to handle cases where no changes are detected
+  no-changes:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.changed_posts == ''
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log no changes detected
+        run: |
+          echo "## No Social Media Content Extraction Needed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Reason:** No posts were added, modified, or deleted in this commit" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The extract social media workflow only runs when:" >> $GITHUB_STEP_SUMMARY
+          echo "- New posts are added to the \`_posts/\` directory" >> $GITHUB_STEP_SUMMARY
+          echo "- Existing posts in the \`_posts/\` directory are modified" >> $GITHUB_STEP_SUMMARY
+          echo "- Posts are deleted from the \`_posts/\` directory" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Workflow completed successfully - no action required**" >> $GITHUB_STEP_SUMMARY
+
+          echo "No posts were changed in this commit. Workflow completed successfully."
