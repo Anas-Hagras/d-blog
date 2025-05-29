@@ -1,7 +1,1 @@
-**MEDIA_PROMPT:**
-
-"A professional, realistic illustration of a diverse group of individuals representing the "A Tea Shops" personas (Athlete, Teacher, Engineer, Artist, Scientist, Human, Owner, Pioneer, Student) in a dynamic team setting. Each persona should be visually represented by relevant objects or actions that symbolize their unique qualities. For example, the Teacher could be shown mentoring a younger colleague, the Engineer could be seen solving a complex problem on a whiteboard, and the Artist could be brainstorming creative ideas. Also, include a visual representation of the feedback template in the form of a notepad or a speech bubble. Use a vibrant, engaging color scheme with clean, modern design. The image should clearly communicate the importance and transformative power of effective feedback in a way that looks authentic and valuable for social media. The design should also inspire viewers to reflect on their own feedback-giving personas, fostering engagement with the post's content."
-
-**INSTAGRAM-SPECIFIC ENHANCEMENT:**
-
-"Ensure the design follows a square or vertical format optimized for Instagram feed display. Incorporate a visually striking, Instagram-worthy aesthetic with bright, vibrant colors and high visual appeal. The design should be polished, professional, and suitable for lifestyle and personal development content. Finally, the image should encourage viewer engagement, prompting them to share or comment on which feedback persona they identify with the most."
+Generate a photo of a cup of tea!
