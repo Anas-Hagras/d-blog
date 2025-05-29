@@ -129,7 +129,7 @@ Based on the guidelines provided in the system message, create a detailed media_
             print(f"Error generating/saving image: {e}")
             return None
     
-    def process_social_media_version(self, version_path):
+    def process_social_media_version(self, version_path, regenerate_mode=False):
         """Process a single version directory to generate media prompt and image"""
         version_path = Path(version_path)
         content_file = version_path / "content.txt"
@@ -161,25 +161,34 @@ Based on the guidelines provided in the system message, create a detailed media_
             print(f"Skipping platform {platform} as it is not supported for image generation")
             return False
 
-        # Load both general and platform-specific prompts
-        general_prompt = self.load_general_prompt()
-        platform_prompt = self.load_platform_prompt(platform)
-        
-        # Combine prompts
-        combined_prompt = general_prompt
-        if platform_prompt:
-            combined_prompt += f"\n\n## Platform-Specific Guidelines for {platform}\n{platform_prompt}"
-        
-        # Generate media prompt using all inputs including platform-specific guidelines
-        media_prompt = self.generate_media_prompt(social_media_content, full_post_content, combined_prompt)
-        if not media_prompt:
-            return False
-        
-        # Save media prompt
+        # Handle media prompt based on mode
         media_prompt_file = version_path / "media_prompt.txt"
-        with open(media_prompt_file, 'w', encoding='utf-8') as f:
-            f.write(media_prompt)
-        print(f"Media prompt saved to: {media_prompt_file}")
+        
+        if regenerate_mode and media_prompt_file.exists():
+            # Regeneration mode: use existing media prompt
+            with open(media_prompt_file, 'r', encoding='utf-8') as f:
+                media_prompt = f.read().strip()
+            print(f"Regeneration mode: Using existing media prompt from: {media_prompt_file}")
+        else:
+            # Normal mode: generate new media prompt
+            # Load both general and platform-specific prompts
+            general_prompt = self.load_general_prompt()
+            platform_prompt = self.load_platform_prompt(platform)
+            
+            # Combine prompts
+            combined_prompt = general_prompt
+            if platform_prompt:
+                combined_prompt += f"\n\n## Platform-Specific Guidelines for {platform}\n{platform_prompt}"
+            
+            # Generate media prompt using all inputs including platform-specific guidelines
+            media_prompt = self.generate_media_prompt(social_media_content, full_post_content, combined_prompt)
+            if not media_prompt:
+                return False
+            
+            # Save media prompt
+            with open(media_prompt_file, 'w', encoding='utf-8') as f:
+                f.write(media_prompt)
+            print(f"Media prompt generated and saved to: {media_prompt_file}")
         
         # Move existing media files to history before generating new ones
         if not self.move_to_media_history(version_path):
@@ -194,7 +203,7 @@ Based on the guidelines provided in the system message, create a detailed media_
         
         return generated_image is not None
     
-    def process_all_versions(self, base_path="social_media"):
+    def process_all_versions(self, base_path="social_media", regenerate_mode=False):
         """Process all social media versions to generate media prompts and images"""
         base_path = Path(base_path)
         if not base_path.exists():
@@ -224,7 +233,7 @@ Based on the guidelines provided in the system message, create a detailed media_
                     
                     print(f"    Processing version: {version_dir.name}")
                     
-                    if self.process_social_media_version(version_dir):
+                    if self.process_social_media_version(version_dir, regenerate_mode):
                         processed_count += 1
                         print(f"    ✓ Successfully processed {version_dir}")
                     else:
@@ -236,7 +245,7 @@ Based on the guidelines provided in the system message, create a detailed media_
         """Regenerate images for versions where prompts have changed"""
         # This would typically be called by a git hook or CI/CD pipeline
         # For now, it processes all versions
-        self.process_all_versions(base_path)
+        self.process_all_versions(base_path, regenerate_mode=True)
 
 def main():
     """Main function to run the image generator"""
@@ -248,20 +257,25 @@ def main():
         if len(sys.argv) < 2:
             print("Usage:")
             print("  python image_generation.py <version_path>")
+            print("  python image_generation.py <version_path> --regenerate")
             print("  python image_generation.py --all")
             print("")
             print("Examples:")
             print("  python image_generation.py social_media/2019-06-15-visit-a-tea-shop-to-gift-feedback/Resend/v1")
+            print("  python image_generation.py social_media/2019-06-15-visit-a-tea-shop-to-gift-feedback/Resend/v1 --regenerate")
             print("  python image_generation.py --all")
             return
         
+        # Check for regenerate flag
+        regenerate_mode = "--regenerate" in sys.argv
+        
         if sys.argv[1] == "--all":
             # Process all existing social media versions
-            generator.process_all_versions()
+            generator.process_all_versions(regenerate_mode=regenerate_mode)
         else:
             # Process single version
             version_path = sys.argv[1]
-            if generator.process_social_media_version(version_path):
+            if generator.process_social_media_version(version_path, regenerate_mode):
                 print(f"✓ Successfully processed {version_path}")
             else:
                 print(f"✗ Failed to process {version_path}")

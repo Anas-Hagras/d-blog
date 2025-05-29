@@ -100,7 +100,7 @@ jobs:
               echo "Processing: $version_dir"
               TOTAL_COUNT=$((TOTAL_COUNT + 1))
               
-              if python scripts/image_generation.py "$version_dir"; then
+              if python scripts/image_generation.py "$version_dir" --regenerate; then
                 echo "✓ Successfully regenerated image for $version_dir"
                 SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
               else
