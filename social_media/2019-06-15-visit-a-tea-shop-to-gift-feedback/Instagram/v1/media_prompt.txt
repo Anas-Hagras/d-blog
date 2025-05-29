@@ -1,1 +1,7 @@
-Generate a photo of a cup of tea!
+**MEDIA PROMPT:**
+
+"Create a professional, realistic illustration of a round table discussion in a tea shop setting. The table should show diverse individuals representing different roles - an Athlete, Teacher, Engineer, Artist, Scientist, Human, Owner, Pioneer, and Student. Each person should be depicted in a way that highlights their unique strengths, following the persona descriptions from the blog post. 
+
+Include visual elements like a notepad with the feedback template ("I observed...", "It made me feel...", "One idea to improve is...") and a gift box to represent feedback as a gift. The image should be in a square or vertical format optimized for Instagram feed display, using a bright, vibrant color scheme with a clean, modern design. 
+
+The overall image should clearly communicate the concept of 'gifting feedback' as a nurturing and supportive process that fosters growth and improvement, aligning with the theme and main benefit described in the social media content. The final visual should have an Instagram-worthy aesthetic that encourages engagement and sharing, looking authentic, valuable, and visually striking for social media."
