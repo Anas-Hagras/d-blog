@@ -1,0 +1,32 @@
+**Title:** How to Give and Receive Feedback Effectively: A Practical Guide
+
+Giving feedback, whether at work or in personal life, is a valuable skill that can enhance the capabilities of those around you. Here’s a summary of principles and frameworks for delivering effective feedback.
+
+### **Key Principles for Good Feedback**
+- **Universal Application:** Feedback can be given to anyone, whether they are subordinates, superiors, or family members.
+- **Preparation is Key:** Good feedback is best delivered verbally, with thoughtful preparation in advance, ideally written down.
+- **Strength-Based and Empathetic:** Focus on the strengths and truth while being empathetic to the receiver.
+- **Feedback as a Gift:** Receiving feedback is an opportunity for improvement.
+- **Timeliness:** Provide feedback promptly when needed and schedule regular check-ins.
+
+### **Template for Preparing Feedback**
+Use this simple template for clear and constructive feedback:
+> 1. I observed **\_\_\_**.
+> 2. It made me feel **\_\_\_**.
+> 3. One idea to improve is **\_\_\_**.
+
+### **"A Tea Shops" Strength Framework**
+A memorable way to identify and assess strengths using personas:
+1. **Athlete:** Prioritizes health and balance.
+2. **Teacher:** Mentors and supports others.
+3. **Engineer:** Provides pragmatic solutions.
+4. **Artist:** Employs creative thinking.
+5. **Scientist:** Bases decisions on data.
+6. **Human:** Embraces authenticity and fun.
+7. **Owner:** Takes accountability for outcomes.
+8. **Pioneer:** Acts with courage and initiative.
+9. **Student:** Welcomes feedback and growth.
+
+### **Example of Effective Feedback**
+A sanitized example of feedback given to a superior:
+> _"I have observed that you have selected the most optimistic scenarios to present to the senior client, and have excluded the more conservative ones. I heard you state the importance to show encouraging
